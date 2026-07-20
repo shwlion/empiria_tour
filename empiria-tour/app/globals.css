@@ -1,25 +1,71 @@
 @import "tailwindcss";
 
+/*
+  Empiria Tour — "field guide to culture".
+
+  Keeps the Empiria brand flame (#F15A29) as the single accent, set against a
+  warm, ink-forward ground with a mono wayfinding layer. Squared geometry and a
+  dashed itinerary/route motif replace the shop's pill-and-shadow defaults.
+  Light-mode only: every surface is an explicit warm value, so we never let the
+  OS dark-mode preference flip text to an unreadable grey.
+*/
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --flame: #f15a29;   /* Empiria brand accent — unchanged */
+  --ember: #c7431a;   /* darker flame for hover / press */
+  --ink: #17130f;     /* warm near-black — text + dark plates */
+  --soot: #241d17;    /* warm dark surface */
+  --paper: #f6f2ea;   /* warm page ground */
+  --bone: #fcfaf5;    /* near-white card surface */
+  --stone: #6c6255;   /* warm secondary text */
+  --line: #e6ded1;    /* warm hairline / border */
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-flame: var(--flame);
+  --color-ember: var(--ember);
+  --color-ink: var(--ink);
+  --color-soot: var(--soot);
+  --color-paper: var(--paper);
+  --color-bone: var(--bone);
+  --color-stone: var(--stone);
+  --color-line: var(--line);
+
+  --font-display: var(--font-bricolage);
+  --font-sans: var(--font-instrument);
+  --font-mono: var(--font-space-mono);
 }
 
-/* Light-mode only: the entire UI uses hardcoded white/gray-50 backgrounds, so
-   we must NOT let the OS dark-mode preference flip the body text to light grey
-   (that produced unreadable grey-on-white everywhere). */
-
 body {
-  background: #ffffff;
-  color: #171717;
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--flame);
+  color: #fff;
+}
+
+/* Visible keyboard focus everywhere (quality floor) */
+:focus-visible {
+  outline: 2px solid var(--flame);
+  outline-offset: 2px;
+}
+
+/* The signature: a dashed itinerary/route rule in the brand flame. */
+.route-rule {
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--flame) 0 9px,
+    transparent 9px 20px
+  );
+}
+
+/* Field-label letterspacing helper for the mono wayfinding layer. */
+.tracking-label {
+  letter-spacing: 0.22em;
 }
 
 @keyframes shake {
@@ -28,3 +74,18 @@ body {
   40%, 80% { transform: translateX(6px); }
 }
 .animate-shake { animation: shake 0.4s ease-in-out; }
+
+@keyframes route-drift {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -48; }
+}
+.route-drift { animation: route-drift 3.2s linear infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -18,14 +18,15 @@ export default async function CategoryPage({
     const title = slug.replace(/-/g, ' ');
 
     return (
-        <div className="min-h-screen bg-white font-sans text-slate-900">
+        <div className="min-h-screen bg-paper font-sans text-ink">
             <Navbar />
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 py-20">
-                <h1 className="text-3xl font-extrabold text-[#F15A29] capitalize mb-4">{title} Tours</h1>
-                <p className="text-gray-700">
+            <main className="mx-auto max-w-7xl px-6 py-24 sm:px-10">
+                <p className="mb-3 font-mono text-[11px] uppercase tracking-label text-flame">Category</p>
+                <h1 className="mb-4 font-display text-3xl font-semibold capitalize tracking-tight text-ink sm:text-4xl">{title} tours</h1>
+                <p className="text-stone">
                     Placeholder category page. Fetch and render tours for this category here.
                 </p>
-                <Link href="/" className="inline-block mt-6 text-sm font-medium text-[#F15A29] hover:underline">
+                <Link href="/" className="mt-6 inline-block font-mono text-[11px] uppercase tracking-wider text-flame hover:underline">
                     ← Browse all tours
                 </Link>
             </main>

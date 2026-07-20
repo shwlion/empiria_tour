@@ -17,20 +17,20 @@ export default async function TourDetailPage({
     const { slug } = await params;
 
     return (
-        <div className="min-h-screen bg-white font-sans text-slate-900">
+        <div className="min-h-screen bg-paper font-sans text-ink">
             <Navbar />
-            <main className="max-w-3xl mx-auto px-4 sm:px-6 py-20">
-                <p className="text-sm font-semibold text-[#F15A29] uppercase tracking-widest mb-2">Tour</p>
-                <h1 className="text-3xl font-extrabold text-slate-900 mb-4 break-words">{slug}</h1>
-                <div className="rounded-2xl border border-gray-100 shadow-sm p-8 bg-white">
-                    <p className="text-gray-700">
+            <main className="mx-auto max-w-3xl px-6 py-24 sm:px-10">
+                <p className="mb-3 font-mono text-[11px] uppercase tracking-label text-flame">Tour</p>
+                <h1 className="mb-6 break-words font-display text-3xl font-semibold tracking-tight text-ink">{slug}</h1>
+                <div className="rounded-lg border border-line bg-bone p-8">
+                    <p className="leading-relaxed text-stone">
                         This is a placeholder tour detail page. Ticketing, occurrences, and checkout
-                        will be ported from <code className="text-[#F15A29]">empiria-shop</code> once the
+                        will be ported from <code className="font-mono text-flame">empiria-shop</code> once the
                         Supabase project and Supabase Auth are set up.
                     </p>
                     <Link
                         href="/"
-                        className="inline-block mt-6 px-6 py-2.5 rounded-full border border-[#F15A29] text-[#F15A29] font-semibold text-sm hover:bg-[#F15A29] hover:text-white transition-colors"
+                        className="mt-6 inline-block rounded-lg border border-ink px-6 py-2.5 font-mono text-[11px] font-bold uppercase tracking-label text-ink transition-colors hover:bg-ink hover:text-bone"
                     >
                         ← Back to all tours
                     </Link>

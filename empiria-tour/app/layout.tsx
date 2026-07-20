@@ -1,19 +1,31 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Bricolage_Grotesque, Instrument_Sans, Space_Mono } from "next/font/google";
 import JsonLd from "@/components/JsonLd";
 import { TOUR_URL } from "@/lib/urls";
 import { absoluteUrl } from "@/lib/seo";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Display: expressive grotesque for headlines and the wordmark.
+const bricolage = Bricolage_Grotesque({
+  variable: "--font-bricolage",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+// Body: a quiet, warm humanist grotesque (not the shop's Geist).
+const instrumentSans = Instrument_Sans({
+  variable: "--font-instrument",
   subsets: ["latin"],
+  display: "swap",
+});
+
+// Utility: the mono "wayfinding" layer — labels, dates, cities, coordinates.
+const spaceMono = Space_Mono({
+  variable: "--font-space-mono",
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  display: "swap",
 });
 
 const SITE_DESCRIPTION =
@@ -64,7 +76,7 @@ const organizationJsonLd: Record<string, unknown> = {
   "@type": "Organization",
   name: "Empiria Tour",
   url: TOUR_URL,
-  logo: absoluteUrl("/icon.png"),
+  logo: absoluteUrl("/logo.png"),
   sameAs: [],
 };
 
@@ -98,7 +110,7 @@ gtag('config', '${GA_ID}');`}
         </>
       ) : null}
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${bricolage.variable} ${instrumentSans.variable} ${spaceMono.variable} antialiased`}
       >
         {GTM_ID ? (
           <noscript>

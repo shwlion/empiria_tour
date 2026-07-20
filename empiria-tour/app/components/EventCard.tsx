@@ -57,26 +57,24 @@ export function EventCard({
 
     return (
         <Link href={`/events/${slug}`} className="group block h-full">
-            <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 h-full flex flex-col">
+            <div className="flex h-full flex-col overflow-hidden rounded-lg border border-line bg-bone transition-all duration-300 hover:-translate-y-1 hover:border-flame hover:shadow-[0_24px_40px_-24px_rgba(23,19,15,0.45)]">
                 {/* Image Section */}
-                <div className="aspect-video bg-[#FEF3E7] relative overflow-hidden">
+                <div className="relative aspect-video overflow-hidden bg-soot">
                     {coverImageUrl ? (
                         <img
                             src={coverImageUrl}
                             alt={title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                     ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                            <div className="w-16 h-16 border-2 border-[#F15A29] rounded-lg flex items-center justify-center">
-                                <ImageIcon className="w-8 h-8 text-[#F15A29]" />
-                            </div>
+                        <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(120%_120%_at_20%_0%,#2b2118_0%,#17130f_100%)]">
+                            <ImageIcon className="h-8 w-8 text-flame/70" />
                         </div>
                     )}
 
                     {/* Event Type Badge */}
-                    <div className="absolute top-3 left-3">
-                        <span className="bg-[#1a1a1a] text-white text-xs font-medium px-3 py-1.5 rounded-full z-10">
+                    <div className="absolute left-3 top-3">
+                        <span className="z-10 rounded bg-ink/90 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-bone backdrop-blur-sm">
                             {eventType}
                         </span>
                     </div>
@@ -84,7 +82,7 @@ export function EventCard({
                     {/* Category Badge */}
                     {category && (
                         <div className="absolute bottom-3 left-3">
-                            <span className="bg-[#F15A29] text-white text-xs font-bold px-3 py-1 rounded-md shadow-sm z-10 uppercase tracking-wider">
+                            <span className="z-10 rounded bg-flame px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-white">
                                 {category}
                             </span>
                         </div>
@@ -92,28 +90,28 @@ export function EventCard({
                 </div>
 
                 {/* Content Section */}
-                <div className="p-5 flex flex-col flex-1">
+                <div className="flex flex-1 flex-col p-5">
                     {/* Date and Title Row */}
-                    <div className="flex items-start gap-4 mb-4 mt-1">
-                        {/* Date Box */}
+                    <div className="mb-4 mt-1 flex items-start gap-4">
+                        {/* Date stamp */}
                         {eventDate ? (
-                            <div className="flex-shrink-0 border border-gray-200 rounded-lg px-3 py-2 text-center min-w-[56px] shadow-[0_2px_8px_-4px_rgba(0,0,0,0.1)]">
-                                <span className="block text-[#F15A29] text-[10px] font-bold uppercase tracking-widest">{month}</span>
-                                <span className="block text-slate-900 text-xl font-extrabold leading-tight mt-0.5">{day}</span>
+                            <div className="min-w-[54px] flex-shrink-0 rounded border border-line px-3 py-2 text-center">
+                                <span className="block font-mono text-[10px] font-bold uppercase tracking-widest text-flame">{month}</span>
+                                <span className="mt-0.5 block font-display text-xl font-semibold leading-tight text-ink">{day}</span>
                             </div>
                         ) : (
-                            <div className="flex-shrink-0 border border-gray-200 rounded-lg px-3 py-2 text-center min-w-[56px] shadow-sm flex items-center justify-center">
-                                <span className="block text-gray-700 text-xs font-bold uppercase">TBD</span>
+                            <div className="flex min-w-[54px] flex-shrink-0 items-center justify-center rounded border border-line px-3 py-2 text-center">
+                                <span className="block font-mono text-[10px] font-bold uppercase tracking-wider text-stone">TBD</span>
                             </div>
                         )}
 
                         {/* Title and Time */}
-                        <div className="flex-1 min-w-0 flex flex-col h-full pt-0.5">
-                            <h3 className="font-bold text-[17px] text-slate-900 leading-tight group-hover:text-[#F15A29] transition-colors line-clamp-2">
+                        <div className="flex h-full min-w-0 flex-1 flex-col pt-0.5">
+                            <h3 className="line-clamp-2 font-display text-[17px] font-semibold leading-tight tracking-tight text-ink transition-colors group-hover:text-flame">
                                 {title}
                             </h3>
                             {eventDate && (
-                                <p className="text-[#F15A29] text-[13px] font-semibold mt-1.5 flex items-center">
+                                <p className="mt-1.5 font-mono text-[11px] uppercase tracking-wide text-flame">
                                     {dayName}, {time}{tzLabel ? ` ${tzLabel}` : ''}
                                 </p>
                             )}
@@ -121,56 +119,56 @@ export function EventCard({
                     </div>
 
                     {/* Location */}
-                    <div className="flex items-center gap-2 text-sm text-gray-700 mb-4 mt-auto">
-                        <MapPin className="w-[15px] h-[15px] text-gray-700 flex-shrink-0" />
-                        <span className="line-clamp-1 text-[13px]">{city}{venueName ? `, ${venueName}` : ''}</span>
+                    <div className="mb-4 mt-auto flex items-center gap-2 text-stone">
+                        <MapPin className="h-[15px] w-[15px] flex-shrink-0" />
+                        <span className="line-clamp-1 font-mono text-[11px] uppercase tracking-wide">{city}{venueName ? `, ${venueName}` : ''}</span>
                     </div>
 
                     {/* Tickets Info */}
-                    <div className="flex items-center justify-between text-[13px] mb-4">
-                        <div className="flex items-center gap-2 text-gray-700">
-                            <Ticket className="w-[15px] h-[15px] text-gray-700 flex-shrink-0" />
-                            <span>{isExternal ? 'External event' : isFree ? 'Free entry' : 'Tickets from'}</span>
+                    <div className="mb-4 flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-stone">
+                            <Ticket className="h-[15px] w-[15px] flex-shrink-0" />
+                            <span className="font-mono text-[11px] uppercase tracking-wide">{isExternal ? 'External' : isFree ? 'Free entry' : 'Tickets from'}</span>
                         </div>
-                        <span className="font-bold text-slate-900 text-[15px]">
+                        <span className="font-display text-[15px] font-semibold text-ink">
                             {isExternal ? 'Off-platform' : isFree ? 'Free' : `${currencySymbol}${minPrice.toLocaleString()}`}
                         </span>
                     </div>
 
                     {/* Divider */}
-                    <div className="border-t border-gray-100 my-0 mb-4" />
+                    <div className="mb-4 border-t border-line" />
 
                     {/* Footer */}
-                    <div className="flex items-center justify-between mt-auto">
+                    <div className="mt-auto flex items-center justify-between">
                         {/* Organizer Info */}
-                        <div className="flex items-center gap-2">
+                        <div className="flex min-w-0 items-center gap-2">
                             {/* Avatar (platform avatar for platform events, else organizer's) — initials fallback */}
                             {organizerAvatarUrl ? (
                                 <img
                                     src={organizerAvatarUrl}
                                     alt={organizerName || 'Empiria Tour'}
-                                    className="w-7 h-7 rounded-full object-cover flex-shrink-0 ring-1 ring-black/5"
+                                    className="h-7 w-7 flex-shrink-0 rounded-full object-cover ring-1 ring-black/5"
                                 />
                             ) : (
-                                <div className="w-7 h-7 rounded-full bg-[#F15A29] flex items-center justify-center flex-shrink-0">
-                                    <span className="text-white text-[10px] font-bold uppercase leading-none">
+                                <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-flame">
+                                    <span className="font-mono text-[10px] font-bold uppercase leading-none text-white">
                                         {(organizerName || 'E').split(' ').map((w: string) => w[0]).slice(0, 2).join('')}
                                     </span>
                                 </div>
                             )}
-                            <span className="text-[12px] text-gray-700 font-medium line-clamp-1">
+                            <span className="line-clamp-1 font-mono text-[11px] uppercase tracking-wide text-stone">
                                 {organizerName || 'Empiria Tour'}
                             </span>
                             {coHostCount > 0 && (
-                                <span className="text-[11px] text-gray-700 font-medium flex-shrink-0">
-                                    +{coHostCount} co-host{coHostCount > 1 ? 's' : ''}
+                                <span className="flex-shrink-0 font-mono text-[10px] uppercase text-stone">
+                                    +{coHostCount}
                                 </span>
                             )}
                         </div>
 
                         {/* View Details Link */}
-                        <span className="text-[#F15A29] font-bold text-[13px] group-hover:underline">
-                            {isExternal ? 'Visit site' : 'Get Tickets'}
+                        <span className="flex-shrink-0 font-mono text-[11px] font-bold uppercase tracking-wide text-flame group-hover:underline">
+                            {isExternal ? 'Visit →' : 'Tickets →'}
                         </span>
                     </div>
                 </div>

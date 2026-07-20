@@ -1,6 +1,6 @@
 'use client';
 
-import { Search } from 'lucide-react';
+import { Compass } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { getCurrencySymbol } from '@/lib/utils';
@@ -111,18 +111,33 @@ export default function EventsGrid({ events, query, categories, activeCategory }
     const visible = filtered.slice(0, visibleCount);
     const hasMore = filtered.length > visibleCount;
 
+    const eyebrow = query.trim()
+        ? `${filtered.length} result${filtered.length === 1 ? '' : 's'}`
+        : selectedCategoryName
+            ? 'Category'
+            : 'Upcoming';
+    const heading = query.trim()
+        ? `“${query}”`
+        : selectedCategoryName
+            ? `${selectedCategoryName} tours`
+            : 'Upcoming tours';
+
     return (
-        <div className="w-full bg-white">
+        <div className="w-full bg-paper">
             {/* Events Grid */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 text-left">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-8">
-                    <h2 className="text-2xl font-bold text-[#F15A29]">
-                        {query.trim()
-                            ? `Results for "${query}" (${filtered.length})`
-                            : selectedCategoryName
-                                ? `${selectedCategoryName} Tours`
-                                : 'Upcoming Tours'}
-                    </h2>
+            <div className="max-w-7xl mx-auto px-6 sm:px-10 py-20 text-left">
+                <div className="mb-10 flex flex-col gap-6 border-b border-line pb-6 sm:flex-row sm:items-end sm:justify-between">
+                    <div className="min-w-0">
+                        <div className="mb-3 flex items-center gap-3">
+                            <span className="h-2 w-2 rotate-45 bg-flame" aria-hidden="true" />
+                            <span className="font-mono text-[11px] uppercase tracking-label text-stone">
+                                {eyebrow}
+                            </span>
+                        </div>
+                        <h2 className="font-display text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+                            {heading}
+                        </h2>
+                    </div>
                     <div className="flex flex-wrap gap-2">
                         {[{ name: 'All', slug: null as string | null }, ...categories].map((cat) => {
                             const isActive = cat.slug === null ? !selectedSlug : cat.slug === selectedSlug;
@@ -131,10 +146,10 @@ export default function EventsGrid({ events, query, categories, activeCategory }
                                     key={cat.name}
                                     type="button"
                                     onClick={() => setSelectedSlug(cat.slug)}
-                                    className={`px-4 py-1.5 rounded-full border text-sm font-medium transition-colors ${
+                                    className={`rounded-md border px-4 py-1.5 font-mono text-[11px] uppercase tracking-wider transition-colors ${
                                         isActive
-                                            ? 'border-[#F15A29] bg-[#F15A29] text-white'
-                                            : 'border-gray-200 text-slate-700 hover:border-[#F15A29] hover:text-[#F15A29] bg-white'
+                                            ? 'border-ink bg-ink text-bone'
+                                            : 'border-line bg-transparent text-stone hover:border-flame hover:text-flame'
                                     }`}
                                 >
                                     {cat.name}
@@ -149,52 +164,55 @@ export default function EventsGrid({ events, query, categories, activeCategory }
                     <div className="-mt-4 mb-8">
                         <Link
                             href={`/category/${selectedSlug}`}
-                            className="text-sm font-medium text-[#F15A29] hover:underline"
+                            className="font-mono text-[11px] uppercase tracking-wider text-flame hover:underline"
                         >
-                            View the full {selectedCategoryName} tours page →
+                            View the full {selectedCategoryName} page →
                         </Link>
                     </div>
                 )}
 
                 {/* Smart suggestion links to the dedicated city/category browse pages. */}
                 {(cityMatch || categoryMatch) && (
-                    <div className="mb-8 flex flex-wrap items-center gap-2 rounded-2xl border border-[#F15A29]/25 bg-[#F15A29]/5 px-4 py-3">
+                    <div className="mb-8 flex flex-wrap items-center gap-3 rounded-lg border border-flame/25 bg-flame/5 px-4 py-3">
+                        <span className="font-mono text-[10px] uppercase tracking-label text-stone">Jump to</span>
                         {cityMatch && (
                             <Link
                                 href={`/city/${cityMatch.slug}`}
-                                className="px-4 py-1.5 rounded-full border border-[#F15A29] bg-white text-sm font-medium text-[#F15A29] hover:bg-[#F15A29] hover:text-white transition-colors"
+                                className="rounded-md border border-flame bg-bone px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-flame transition-colors hover:bg-flame hover:text-white"
                             >
-                                See all tours in {cityMatch.name} →
+                                All tours in {cityMatch.name} →
                             </Link>
                         )}
                         {categoryMatch && (
                             <Link
                                 href={`/category/${categoryMatch.slug}`}
-                                className="px-4 py-1.5 rounded-full border border-[#F15A29] bg-white text-sm font-medium text-[#F15A29] hover:bg-[#F15A29] hover:text-white transition-colors"
+                                className="rounded-md border border-flame bg-bone px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-flame transition-colors hover:bg-flame hover:text-white"
                             >
-                                See all {categoryMatch.name} tours →
+                                All {categoryMatch.name} tours →
                             </Link>
                         )}
                     </div>
                 )}
 
                 {filtered.length === 0 ? (
-                    <div className="text-center py-20 text-gray-600">
-                        <Search className="mx-auto mb-4 w-10 h-10 opacity-30" />
+                    <div className="flex flex-col items-center py-24 text-center">
+                        <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-line">
+                            <Compass className="h-7 w-7 text-flame" />
+                        </div>
                         {query.trim() ? (
                             <>
-                                <p className="text-lg font-medium">No tours found for &quot;{query}&quot;</p>
-                                <p className="text-sm mt-1">Try a different search term.</p>
+                                <h3 className="font-display text-2xl font-semibold text-ink">No tours match &ldquo;{query}&rdquo;</h3>
+                                <p className="mt-2 font-mono text-[12px] uppercase tracking-wide text-stone">Try a different search term</p>
                             </>
                         ) : selectedCategoryName ? (
                             <>
-                                <p className="text-lg font-medium">No tours in {selectedCategoryName}</p>
-                                <p className="text-sm mt-1">Try a different category.</p>
+                                <h3 className="font-display text-2xl font-semibold text-ink">No {selectedCategoryName} tours yet</h3>
+                                <p className="mt-2 font-mono text-[12px] uppercase tracking-wide text-stone">Try another category</p>
                             </>
                         ) : (
                             <>
-                                <p className="text-lg font-medium">No upcoming tours</p>
-                                <p className="text-sm mt-1">Check back soon.</p>
+                                <h3 className="font-display text-2xl font-semibold text-ink">No tours on the map yet</h3>
+                                <p className="mt-2 font-mono text-[12px] uppercase tracking-wide text-stone">New journeys are being charted — check back soon</p>
                             </>
                         )}
                     </div>
@@ -235,11 +253,11 @@ export default function EventsGrid({ events, query, categories, activeCategory }
                         })}
                     </div>
                     {hasMore && (
-                        <div className="flex justify-center mt-10">
+                        <div className="mt-12 flex justify-center">
                             <button
                                 type="button"
                                 onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
-                                className="px-6 py-2.5 rounded-full border border-[#F15A29] text-[#F15A29] font-semibold text-sm hover:bg-[#F15A29] hover:text-white transition-colors"
+                                className="rounded-lg border border-ink px-6 py-2.5 font-mono text-[11px] font-bold uppercase tracking-label text-ink transition-colors hover:bg-ink hover:text-bone"
                             >
                                 Load more tours
                             </button>

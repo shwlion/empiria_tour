@@ -118,7 +118,7 @@ export default async function TourHome({
     }
 
     return (
-        <div className="min-h-screen bg-white font-sans text-slate-900">
+        <div className="min-h-screen bg-paper font-sans text-ink">
             <Navbar overlay />
             <HomeContent
                 events={events}

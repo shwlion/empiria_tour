@@ -35,7 +35,7 @@ export default function MobileNav() {
   }, [open]);
 
   const itemClass =
-    'px-5 py-3 text-sm font-medium text-slate-700 hover:bg-gray-50 hover:text-slate-900 transition-colors';
+    'px-5 py-3 font-mono text-[11px] uppercase tracking-label text-bone/70 hover:bg-white/5 hover:text-bone transition-colors';
 
   return (
     <div ref={wrapperRef} className="sm:hidden">
@@ -44,13 +44,13 @@ export default function MobileNav() {
         onClick={() => setOpen((v) => !v)}
         aria-label={open ? 'Close menu' : 'Open menu'}
         aria-expanded={open}
-        className="flex h-9 w-9 items-center justify-center rounded-full text-slate-700 hover:bg-gray-100 transition-colors"
+        className="flex h-9 w-9 items-center justify-center rounded-lg text-bone/80 hover:bg-white/10 transition-colors"
       >
         {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </button>
 
       {open && (
-        <div className="absolute left-0 right-0 top-full mt-2 rounded-2xl bg-white/95 backdrop-blur-md shadow-lg border border-gray-100 overflow-hidden">
+        <div className="absolute left-0 right-0 top-full mt-3 rounded-xl bg-ink/95 backdrop-blur-md shadow-[0_18px_40px_-20px_rgba(0,0,0,0.7)] ring-1 ring-white/10 overflow-hidden">
           <div className="flex flex-col py-2">
             {LINKS.map((link) =>
               link.external ? (
