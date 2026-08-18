@@ -3,11 +3,9 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
-import { APEX_URL } from '@/lib/urls';
 
 const LINKS: { href: string; label: string; external?: boolean }[] = [
   { href: '/', label: 'Tours' },
-  { href: `${APEX_URL}/about`, label: 'About', external: true },
 ];
 
 /**

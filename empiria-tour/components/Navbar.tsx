@@ -2,18 +2,15 @@ import Link from 'next/link';
 import Image from 'next/image';
 import CurrencySelector from './CurrencySelector';
 import MobileNav from './MobileNav';
-import { APEX_URL } from '@/lib/urls';
+import UserMenu from './UserMenu';
 
 /**
  * Floating navbar — a warm ink "plate" that reads over both the dark hero and
- * the paper pages. The Empiria flame lives in the wordmark and the Sign In
- * button; everything else is the quiet mono wayfinding layer.
+ * the paper pages. The Empiria flame lives in the wordmark and the auth button;
+ * everything else is the quiet mono wayfinding layer.
  *
- * AUTH: the shop navbar reads an Auth0 session here to show a UserMenu. This
- * app is moving to Supabase Auth, so the session read is intentionally removed
- * for now — the "Sign In" button points at the (placeholder) /login route.
- * Wire the Supabase server client in here once auth is set up, then swap the
- * button for a UserMenu when a session exists.
+ * AUTH: session state is read client-side by <UserMenu /> (Supabase Auth, not
+ * Auth0), which keeps these server-rendered pages statically renderable.
  */
 export default function Navbar({ overlay = false }: { overlay?: boolean }) {
   return (
@@ -29,10 +26,10 @@ export default function Navbar({ overlay = false }: { overlay?: boolean }) {
               <Image
                 src="/logo-white.png"
                 alt="Empiria"
-                width={189}
-                height={63}
+                width={1507}
+                height={522}
                 priority
-                className="h-8 w-auto"
+                className="h-10 w-auto"
               />
             </Link>
 
@@ -43,23 +40,12 @@ export default function Navbar({ overlay = false }: { overlay?: boolean }) {
               >
                 Tours
               </Link>
-              <a
-                href={`${APEX_URL}/about`}
-                className="font-mono text-[11px] uppercase tracking-label text-bone/60 transition-colors hover:text-bone"
-              >
-                About
-              </a>
             </div>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-4">
             <CurrencySelector />
-            <a
-              href="/login"
-              className="whitespace-nowrap rounded-lg bg-flame px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-label text-white transition-colors hover:bg-ember sm:px-5 sm:py-2.5"
-            >
-              Sign In
-            </a>
+            <UserMenu />
           </div>
         </div>
       </nav>

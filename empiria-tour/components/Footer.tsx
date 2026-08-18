@@ -15,8 +15,8 @@ export default function Footer() {
             <Image
               src="/logo-white.png"
               alt="Empiria"
-              width={189}
-              height={63}
+              width={1507}
+              height={522}
               className="h-10 w-auto"
             />
             <p className="text-[14px] leading-relaxed text-bone/60">
