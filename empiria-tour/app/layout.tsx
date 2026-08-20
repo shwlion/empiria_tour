@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import { Bricolage_Grotesque, Instrument_Sans, Space_Mono } from "next/font/google";
 import JsonLd from "@/components/JsonLd";
+import Analytics from "@/components/Analytics";
+import ConsentBanner from "@/components/ConsentBanner";
 import { TOUR_URL } from "@/lib/urls";
 import { absoluteUrl } from "@/lib/seo";
 import "./globals.css";
@@ -28,45 +29,46 @@ const spaceMono = Space_Mono({
   display: "swap",
 });
 
+const SITE_NAME = "Empiria Tours";
 const SITE_DESCRIPTION =
-  "Empiria Tour — discover and book guided cultural tours and unforgettable experiences across Canada and beyond.";
+  "Guided small-group trips through Greece, Italy and beyond. Real departures, all-in pricing, no guesswork.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(TOUR_URL),
   title: {
-    default: "Empiria Tour",
-    template: "%s · Empiria Tour",
+    default: SITE_NAME,
+    template: `%s · ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
-  applicationName: "Empiria Tour",
+  applicationName: SITE_NAME,
   openGraph: {
     type: "website",
-    siteName: "Empiria Tour",
-    title: "Empiria Tour",
+    siteName: SITE_NAME,
+    title: SITE_NAME,
     description: SITE_DESCRIPTION,
     url: TOUR_URL,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Empiria Tour",
+    title: SITE_NAME,
     description: SITE_DESCRIPTION,
   },
 };
 
-// Analytics IDs are env-gated: no-op until set in Vercel. GTM takes precedence
-// over GA4 (they're mutually exclusive in practice).
+// Analytics IDs stay env-gated, and are additionally consent-gated inside
+// <Analytics /> — nothing loads until the visitor accepts. GTM takes precedence
+// over GA4 (they are mutually exclusive in practice).
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
-// WebSite + Organization structured data for the tour domain.
 const siteJsonLd: Record<string, unknown> = {
   "@context": "https://schema.org",
   "@type": "WebSite",
-  name: "Empiria Tour",
+  name: SITE_NAME,
   url: TOUR_URL,
   potentialAction: {
     "@type": "SearchAction",
-    target: `${TOUR_URL}/?q={search_term_string}`,
+    target: `${TOUR_URL}/tours?q={search_term_string}`,
     "query-input": "required name=search_term_string",
   },
 };
@@ -74,7 +76,7 @@ const siteJsonLd: Record<string, unknown> = {
 const organizationJsonLd: Record<string, unknown> = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  name: "Empiria Tour",
+  name: SITE_NAME,
   url: TOUR_URL,
   logo: absoluteUrl("/logo.png"),
   sameAs: [],
@@ -87,43 +89,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      {GTM_ID ? (
-        <Script id="gtm-base" strategy="afterInteractive">
-          {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','${GTM_ID}');`}
-        </Script>
-      ) : GA_ID ? (
-        <>
-          <Script
-            src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
-            strategy="afterInteractive"
-          />
-          <Script id="ga4-base" strategy="afterInteractive">
-            {`window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());
-gtag('config', '${GA_ID}');`}
-          </Script>
-        </>
-      ) : null}
       <body
         className={`${bricolage.variable} ${instrumentSans.variable} ${spaceMono.variable} antialiased`}
       >
-        {GTM_ID ? (
-          <noscript>
-            <iframe
-              src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
-              height="0"
-              width="0"
-              style={{ display: "none", visibility: "hidden" }}
-            />
-          </noscript>
-        ) : null}
         <JsonLd data={[siteJsonLd, organizationJsonLd]} />
         {children}
+        <ConsentBanner />
+        <Analytics gtmId={GTM_ID} gaId={GA_ID} />
       </body>
     </html>
   );

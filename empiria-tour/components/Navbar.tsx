@@ -3,7 +3,14 @@ import Image from 'next/image';
 import CurrencySelector from './CurrencySelector';
 import MobileNav from './MobileNav';
 import UserMenu from './UserMenu';
-import { getCurrencies, getDefaultCurrency } from '@/lib/catalogue';
+import DestinationMenu from './DestinationMenu';
+import type { DestinationOption } from '@/components/tours/SearchBar';
+import {
+  getCurrencies,
+  getDefaultCurrency,
+  getDestinationTree,
+  type DestinationNode,
+} from '@/lib/catalogue';
 
 /**
  * Floating navbar — a warm ink "plate" that reads over both the dark hero and
@@ -16,7 +23,18 @@ import { getCurrencies, getDefaultCurrency } from '@/lib/catalogue';
  * CURRENCY: the list comes from the database rather than a hard-coded constant,
  * because it decides which prices exist — a currency with no `package_prices`
  * rows would show an empty catalogue.
+ *
+ * DESTINATIONS: A1 requires the menu to be driven by published destinations, so
+ * it is fetched here rather than written into the component.
  */
+
+function flatten(nodes: DestinationNode[], depth = 0): DestinationOption[] {
+  return nodes.flatMap((n) => [
+    { path: n.path, name: n.name, depth },
+    ...flatten(n.children, depth + 1),
+  ]);
+}
+
 export default async function Navbar({
   overlay = false,
   currency,
@@ -25,8 +43,13 @@ export default async function Navbar({
   /** The currency the page is rendering in; falls back to the platform default. */
   currency?: string;
 }) {
-  const [currencies, fallback] = await Promise.all([getCurrencies(), getDefaultCurrency()]);
+  const [currencies, fallback, tree] = await Promise.all([
+    getCurrencies(),
+    getDefaultCurrency(),
+    getDestinationTree(),
+  ]);
   const active = currency ?? fallback;
+  const destinations = flatten(tree);
 
   return (
     <>
@@ -36,7 +59,7 @@ export default async function Navbar({
         <div className="relative flex items-center justify-between rounded-xl bg-ink/90 px-4 py-3 shadow-[0_18px_40px_-20px_rgba(0,0,0,0.7)] ring-1 ring-white/10 backdrop-blur-md sm:px-5">
           <div className="flex items-center gap-3 sm:gap-8">
             {/* Mobile: links collapse into a hamburger dropdown */}
-            <MobileNav />
+            <MobileNav destinations={destinations} />
 
             <Link href="/" className="flex items-center" aria-label="Empiria Tours home">
               {/* Empiria master brand mark (white variant for the dark nav plate). */}
@@ -57,6 +80,7 @@ export default async function Navbar({
               >
                 Tours
               </Link>
+              <DestinationMenu destinations={destinations} />
             </div>
           </div>
 

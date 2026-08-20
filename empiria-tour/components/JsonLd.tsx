@@ -11,7 +11,7 @@ export default function JsonLd({ data }: { data: Record<string, unknown> | Recor
   return (
     <script
       type="application/ld+json"
-      // eslint-disable-next-line react/no-danger
+      // Safe by construction — see the note above.
       dangerouslySetInnerHTML={{ __html: json }}
     />
   );
