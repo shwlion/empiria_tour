@@ -3,6 +3,10 @@ import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
+// The shared footer reads platform_settings, so this page is revalidated rather
+// than frozen at build time.
+export const revalidate = 300;
+
 export const metadata: Metadata = {
   title: 'Not authorized',
 };

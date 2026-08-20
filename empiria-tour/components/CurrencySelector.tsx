@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 export type CurrencyChoice = { code: string; symbol: string; name: string };
 
@@ -16,6 +16,13 @@ export type CurrencyChoice = { code: string; symbol: string; name: string };
  * The previous version kept the choice in localStorage and read it back in an
  * effect, which meant the first paint showed one currency and the second showed
  * another. Prices that flicker are worse than prices that reload.
+ *
+ * The existing query string is read from `window.location` inside the click
+ * handler rather than with `useSearchParams()`. Nothing here *renders* from the
+ * query — it is only needed at the moment of navigation — and this component
+ * sits in the navbar, so a render-time dependency on search params would opt
+ * every page on the site out of static prerendering (or demand a Suspense
+ * boundary around the whole navbar to compensate).
  */
 export default function CurrencySelector({
     currencies,
@@ -27,14 +34,13 @@ export default function CurrencySelector({
     const [open, setOpen] = useState(false);
     const router = useRouter();
     const pathname = usePathname();
-    const params = useSearchParams();
 
     if (currencies.length < 2) return null;
     const active = currencies.find((c) => c.code === current) ?? currencies[0];
 
     function choose(code: string) {
         setOpen(false);
-        const next = new URLSearchParams(params.toString());
+        const next = new URLSearchParams(window.location.search);
         next.set('currency', code);
         router.push(`${pathname}?${next}`);
         router.refresh();
