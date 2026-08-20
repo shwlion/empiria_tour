@@ -30,7 +30,9 @@ export default async function Navbar({
 
   return (
     <>
-      <nav className="fixed top-4 left-1/2 z-50 w-[94%] max-w-5xl -translate-x-1/2">
+      {/* Sits clear of the hero plate frame, which is inset 12px on mobile and
+          24px from sm up — at top-4 the nav plate landed on that line. */}
+      <nav className="fixed top-8 left-1/2 z-50 w-[94%] max-w-5xl -translate-x-1/2 sm:top-12">
         <div className="relative flex items-center justify-between rounded-xl bg-ink/90 px-4 py-3 shadow-[0_18px_40px_-20px_rgba(0,0,0,0.7)] ring-1 ring-white/10 backdrop-blur-md sm:px-5">
           <div className="flex items-center gap-3 sm:gap-8">
             {/* Mobile: links collapse into a hamburger dropdown */}
@@ -68,7 +70,7 @@ export default async function Navbar({
         </div>
       </nav>
       {/* In-flow spacer so page content sits below the floating nav (skipped when a page wants its hero under the navbar) */}
-      {!overlay && <div aria-hidden="true" className="h-20" />}
+      {!overlay && <div aria-hidden="true" className="h-24 sm:h-28" />}
     </>
   );
 }
