@@ -397,14 +397,11 @@ export async function searchPackages(
   // 3 ── The main query, with everything Postgres can filter directly.
   let q = db.from('packages').select(CARD_SELECT).eq('status', 'published');
 
-  if (filters.destinationPath) {
-    // Roll up: 'greece' matches greece and everything beneath it.
-    q = q.or(
-      `path.eq.${filters.destinationPath},path.like.${filters.destinationPath}/%`,
-      { foreignTable: 'destinations' }
-    );
-  }
-  if (filters.categorySlug) q = q.eq('categories.slug', filters.categorySlug);
+  // Destination and category are filtered in step 4, not here. A PostgREST
+  // filter on an embedded resource (`categories.slug`) does NOT drop the parent
+  // row unless the embed is declared `!inner` — it just nulls the embed out. The
+  // shape that looks like it filters and quietly does not is worse than an
+  // explicit pass over the results, so the pass is where it happens.
   if (filters.minDurationDays) q = q.gte('duration_days', filters.minDurationDays);
   if (filters.maxDurationDays) q = q.lte('duration_days', filters.maxDurationDays);
   if (filters.query) {
@@ -427,7 +424,7 @@ export async function searchPackages(
     .filter((c) => c.fromPriceCents !== null);
 
   if (filters.destinationPath) {
-    // Belt and braces: the embedded `or` above filters the join, not the parent.
+    // Roll up: 'greece' matches greece and everything beneath it.
     cards = cards.filter(
       (c) =>
         c.destination?.path === filters.destinationPath ||
@@ -678,14 +675,5 @@ async function fetchPrices(
   return new Map((data ?? []).filter((r) => r.package_id).map((r) => [r.package_id as string, r as PriceRow]));
 }
 
-// ─── Formatting ───────────────────────────────────────────────────────────
-
-/** Money for display. Cents in, localised string out. */
-export function formatPrice(cents: number | null, currency: Currency, locale = 'en-CA'): string {
-  if (cents == null) return '—';
-  return new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: cents % 100 === 0 ? 0 : 2,
-  }).format(cents / 100);
-}
+// Money formatting lives in lib/money.ts — it must be importable from client
+// components, which cannot import anything from this server-only module.

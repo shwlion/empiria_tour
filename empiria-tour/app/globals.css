@@ -1,13 +1,17 @@
 @import "tailwindcss";
 
 /*
-  Empiria Tour — "field guide to culture".
+  Empiria Tours — Airbnb's spatial system, Empiria's palette.
 
-  Keeps the Empiria brand flame (#F15A29) as the single accent, set against a
-  warm, ink-forward ground with a mono wayfinding layer. Squared geometry and a
-  dashed itinerary/route motif replace the shop's pill-and-shadow defaults.
-  Light-mode only: every surface is an explicit warm value, so we never let the
-  OS dark-mode preference flip text to an unreadable grey.
+  The colour story is unchanged: the brand flame (#F15A29) as the single accent
+  against a warm, ink-forward ground, with a mono wayfinding layer. What changed
+  is the SPACE — generous whitespace, soft-cornered image-forward cards, a
+  segmented search control, and elevation that appears on hover rather than
+  sitting there by default. Travellers already know that vocabulary; there is
+  nothing to gain from inventing our own.
+
+  Light-mode only: every surface is an explicit warm value, so the OS dark-mode
+  preference can never flip text to an unreadable grey.
 */
 
 :root {
@@ -19,6 +23,16 @@
   --bone: #fcfaf5;    /* near-white card surface */
   --stone: #6c6255;   /* warm secondary text */
   --line: #e6ded1;    /* warm hairline / border */
+
+  /* Spatial system. Airbnb's proportions, warmed to this palette. */
+  --r-card: 14px;
+  --r-pill: 999px;
+  --r-field: 10px;
+
+  /* Elevation is a hover state, not a resting one. */
+  --lift-1: 0 2px 6px -2px rgb(23 19 15 / 0.10);
+  --lift-2: 0 12px 28px -12px rgb(23 19 15 / 0.24);
+  --lift-3: 0 24px 48px -20px rgb(23 19 15 / 0.30);
 }
 
 @theme inline {
@@ -30,6 +44,13 @@
   --color-bone: var(--bone);
   --color-stone: var(--stone);
   --color-line: var(--line);
+
+  --radius-card: var(--r-card);
+  --radius-field: var(--r-field);
+
+  --shadow-lift-1: var(--lift-1);
+  --shadow-lift-2: var(--lift-2);
+  --shadow-lift-3: var(--lift-3);
 
   --font-display: var(--font-bricolage);
   --font-sans: var(--font-instrument);
@@ -68,6 +89,55 @@ body {
   letter-spacing: 0.22em;
 }
 
+/*
+  The segmented search control. Airbnb's shape — one pill, divided, each segment
+  its own hit target — with our hairline and flame rather than their grey.
+*/
+.search-pill {
+  border-radius: var(--r-pill);
+  background: var(--bone);
+  border: 1px solid var(--line);
+  box-shadow: var(--lift-2);
+}
+.search-pill > * + * {
+  border-left: 1px solid var(--line);
+}
+.search-seg {
+  border-radius: var(--r-pill);
+  transition: background-color 140ms ease;
+}
+.search-seg:hover { background: color-mix(in srgb, var(--paper) 70%, transparent); }
+.search-seg:focus-within { background: color-mix(in srgb, var(--paper) 90%, transparent); }
+
+@media (max-width: 767px) {
+  .search-pill { border-radius: var(--r-card); }
+  .search-pill > * + * { border-left: 0; border-top: 1px solid var(--line); }
+  .search-seg { border-radius: var(--r-field); }
+}
+
+/* Cards lift on hover; at rest they sit flat against the paper. */
+.card-lift {
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+.card-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--lift-3);
+}
+
+/* Image placeholder while a package has no photography yet. */
+.img-fallback {
+  background:
+    radial-gradient(120% 90% at 20% 0%, color-mix(in srgb, var(--flame) 12%, transparent), transparent 60%),
+    linear-gradient(160deg, var(--paper), var(--line));
+}
+
+/* Horizontal rails scroll without a visible scrollbar. */
+.rail {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.rail::-webkit-scrollbar { display: none; }
+
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   20%, 60% { transform: translateX(-6px); }
@@ -88,4 +158,5 @@ body {
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
+  .card-lift:hover { transform: none; }
 }
