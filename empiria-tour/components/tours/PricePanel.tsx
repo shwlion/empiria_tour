@@ -108,9 +108,9 @@ export default function PricePanel({ pkg }: { pkg: PackageDetail }) {
     'w-full rounded-field border border-line bg-bone px-3 py-2.5 text-[14px] text-ink outline-none transition-colors focus:border-flame';
 
   return (
-    <div className="rounded-card bg-bone p-5 ring-1 ring-line shadow-lift-2">
+    <div className="rounded-card border border-line bg-bone p-5 shadow-lift-panel">
       <div className="flex items-baseline gap-2">
-        <span className="font-display text-[28px] text-ink">
+        <span className="font-display text-[28px] font-semibold tracking-tight text-ink">
           {formatPrice(departure?.pricePerPersonCents ?? pkg.fromPriceCents, pkg.currency)}
         </span>
         <span className="text-[14px] text-stone">per person</span>
@@ -240,7 +240,7 @@ export default function PricePanel({ pkg }: { pkg: PackageDetail }) {
             </ul>
 
             <div className="mt-4 flex items-baseline justify-between border-t border-line pt-4">
-              <span className="font-display text-[17px] text-ink">Total</span>
+              <span className="font-display text-[17px] font-semibold text-ink">Total</span>
               <span className="font-display text-[22px] tabular-nums text-ink">
                 {formatPrice(total, pkg.currency)}
               </span>
@@ -280,7 +280,7 @@ export default function PricePanel({ pkg }: { pkg: PackageDetail }) {
           <button
             type="button"
             disabled={overCapacity || overRoom || pax === 0}
-            className="mt-5 w-full rounded-full bg-flame px-6 py-3.5 font-mono text-[11px] font-bold uppercase tracking-label text-white transition-colors hover:bg-ember disabled:cursor-not-allowed disabled:bg-stone/40"
+            className="mt-5 w-full rounded-field bg-flame px-6 py-3.5 font-mono text-[11px] font-bold uppercase tracking-label text-white transition-colors hover:bg-ember disabled:cursor-not-allowed disabled:bg-stone/40"
           >
             Book now
           </button>

@@ -6,7 +6,8 @@ import { ArrowRight, ShieldCheck } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import TourCard from '@/components/tours/TourCard';
-import SearchPill, { type DestinationOption } from '@/components/tours/SearchPill';
+import SearchBar, { type DestinationOption } from '@/components/tours/SearchBar';
+import { PlateFrame, RouteThread, EdgeCoordinate } from '@/components/tours/PlateFrame';
 import { absoluteUrl } from '@/lib/seo';
 import { formatPrice } from '@/lib/money';
 import {
@@ -50,18 +51,36 @@ function SectionHead({
         <div className="mb-6 flex items-end justify-between gap-6">
             <div>
                 <p className="font-mono text-[10px] uppercase tracking-label text-flame">{eyebrow}</p>
-                <h2 className="mt-2 font-display text-[26px] leading-tight text-ink sm:text-[30px]">{title}</h2>
+                <h2 className="mt-2 font-display text-[26px] font-semibold leading-tight tracking-tight text-ink sm:text-[30px]">
+                    {title}
+                </h2>
             </div>
             {href && (
                 <Link
                     href={href}
-                    className="hidden shrink-0 items-center gap-1.5 font-mono text-[11px] uppercase tracking-label text-stone transition-colors hover:text-flame sm:flex"
+                    className="hidden shrink-0 items-center gap-1.5 font-mono text-[11px] font-bold uppercase tracking-label text-stone transition-colors hover:text-flame sm:flex"
                 >
                     {linkLabel ?? 'See all'}
                     <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                 </Link>
             )}
         </div>
+    );
+}
+
+/** Squared chip link — the field-guide tag, not a pill. */
+function Chip({ href, active, children }: { href: string; active?: boolean; children: React.ReactNode }) {
+    return (
+        <Link
+            href={href}
+            className={`shrink-0 rounded-chip border px-4 py-2 font-mono text-[11px] uppercase tracking-label transition-colors ${
+                active
+                    ? 'border-ink bg-ink text-bone'
+                    : 'border-line bg-bone text-ink hover:border-flame hover:text-flame'
+            }`}
+        >
+            {children}
+        </Link>
     );
 }
 
@@ -93,35 +112,41 @@ export default async function TourHome({
 
     return (
         <div className="min-h-screen bg-paper font-sans text-ink">
-            <Navbar />
+            <Navbar overlay currency={currency} />
 
-            {/* ── Hero ─────────────────────────────────────────────────────── */}
-            <section className="mx-auto w-full max-w-6xl px-5 pb-4 pt-10 sm:pt-16">
-                <div className="max-w-2xl">
-                    <p className="font-mono text-[10px] uppercase tracking-label text-flame">
-                        Small groups · Real departures
-                    </p>
-                    <h1 className="mt-4 font-display text-[38px] leading-[1.05] tracking-tight text-ink sm:text-[54px]">
-                        Trips that are worth
-                        <br />
-                        the time off.
-                    </h1>
-                    <p className="mt-5 max-w-xl text-[16px] leading-relaxed text-stone">
-                        Guided journeys through Greece, Italy and beyond — sixteen travellers at most,
-                        prices shown all in, and every departure date real rather than indicative.
-                    </p>
-                </div>
+            {/* ── Hero: the printed plate ──────────────────────────────────── */}
+            <section className="relative flex min-h-svh flex-col justify-center overflow-hidden bg-ink">
+                <RouteThread className="absolute inset-0 h-full w-full opacity-70" />
+                <PlateFrame />
+                <EdgeCoordinate />
 
-                <div className="route-rule mt-8 h-px w-full opacity-60" aria-hidden="true" />
+                <div className="relative z-10 mx-auto w-full max-w-6xl px-6 pb-20 pt-32 sm:px-10 sm:pb-24 sm:pt-40">
+                    <div className="max-w-3xl">
+                        <p className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-label text-bone/50">
+                            <span className="h-1.5 w-1.5 rounded-full bg-flame" aria-hidden="true" />
+                            Small groups · Real departures
+                        </p>
+                        <h1 className="mt-5 font-display text-[40px] font-semibold leading-[1.03] tracking-tight text-bone sm:text-[62px]">
+                            Trips that are worth
+                            <br />
+                            the time off.
+                        </h1>
+                        <p className="mt-6 max-w-xl text-[16px] leading-relaxed text-bone/65">
+                            Guided journeys through Greece, Italy and beyond — sixteen travellers at
+                            most, prices shown all in, and every departure date real rather than
+                            indicative.
+                        </p>
+                    </div>
 
-                <div className="mt-8">
-                    <SearchPill destinations={destinationOptions} />
+                    <div className="mt-10 max-w-4xl">
+                        <SearchBar destinations={destinationOptions} tone="dark" />
+                    </div>
                 </div>
             </section>
 
             {/* ── Featured ─────────────────────────────────────────────────── */}
             {featured.length > 0 && (
-                <section className="mx-auto w-full max-w-6xl px-5 py-14">
+                <section className="mx-auto w-full max-w-6xl px-5 py-16">
                     <SectionHead
                         eyebrow="Chosen by us"
                         title="Where we would go first"
@@ -138,14 +163,15 @@ export default async function TourHome({
 
             {/* ── Destinations ─────────────────────────────────────────────── */}
             {tiles.length > 0 && (
-                <section className="mx-auto w-full max-w-6xl px-5 py-14">
+                <section className="mx-auto w-full max-w-6xl px-5 py-16">
+                    <div className="route-rule mb-10 h-px w-full opacity-60" aria-hidden="true" />
                     <SectionHead eyebrow="By place" title="Start with somewhere" />
                     <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                         {tiles.map((d) => (
                             <Link
                                 key={d.id}
                                 href={`/tours?destination=${encodeURIComponent(d.path)}`}
-                                className="group card-lift overflow-hidden rounded-card bg-bone ring-1 ring-line"
+                                className="group card-lift flex flex-col overflow-hidden rounded-card border border-line bg-bone"
                             >
                                 <div className="relative aspect-[16/10] w-full overflow-hidden">
                                     {d.heroImage ? (
@@ -154,13 +180,15 @@ export default async function TourHome({
                                             alt=""
                                             fill
                                             sizes="(max-width: 640px) 100vw, 33vw"
-                                            className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                                            className="object-cover transition-transform duration-500 group-hover:scale-105"
                                         />
                                     ) : (
                                         <div className="img-fallback h-full w-full" />
                                     )}
-                                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/80 to-transparent p-4">
-                                        <h3 className="font-display text-[20px] text-bone">{d.name}</h3>
+                                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/85 to-transparent p-4">
+                                        <h3 className="font-display text-[20px] font-semibold tracking-tight text-bone">
+                                            {d.name}
+                                        </h3>
                                         <p className="font-mono text-[10px] uppercase tracking-label text-bone/70">
                                             {d.packageCount} {d.packageCount === 1 ? 'trip' : 'trips'}
                                             {d.fromPriceCents != null && (
@@ -182,23 +210,17 @@ export default async function TourHome({
 
             {/* ── Collections ──────────────────────────────────────────────── */}
             {collections.length > 0 && (
-                <section className="mx-auto w-full max-w-6xl px-5 py-6">
-                    <div className="flex flex-wrap gap-3">
+                <section className="mx-auto w-full max-w-6xl px-5">
+                    <div className="flex flex-wrap gap-2">
                         {collections.map((c) => (
-                            <Link
-                                key={c.id}
-                                href={`/tours?collection=${c.slug}`}
-                                className="rounded-full border border-line bg-bone px-4 py-2 text-[14px] text-ink transition-colors hover:border-flame hover:text-flame"
-                            >
-                                {c.name}
-                            </Link>
+                            <Chip key={c.id} href={`/tours?collection=${c.slug}`}>{c.name}</Chip>
                         ))}
                     </div>
                 </section>
             )}
 
             {/* ── Everything, filtered by category ─────────────────────────── */}
-            <section id="tours" className="mx-auto w-full max-w-6xl px-5 py-14">
+            <section id="tours" className="mx-auto w-full max-w-6xl px-5 py-16">
                 <SectionHead
                     eyebrow={activeCategory ? 'Filtered' : 'Everything'}
                     title={activeCategory
@@ -210,28 +232,15 @@ export default async function TourHome({
 
                 {categories.length > 0 && (
                     <div className="rail mb-7 -mx-5 flex gap-2 overflow-x-auto px-5 pb-1">
-                        <Link
-                            href="/#tours"
-                            className={`shrink-0 rounded-full border px-4 py-2 text-[14px] transition-colors ${
-                                !activeCategory
-                                    ? 'border-ink bg-ink text-bone'
-                                    : 'border-line bg-bone text-ink hover:border-flame hover:text-flame'
-                            }`}
-                        >
-                            All
-                        </Link>
+                        <Chip href="/#tours" active={!activeCategory}>All</Chip>
                         {categories.map((c) => (
-                            <Link
+                            <Chip
                                 key={c.id}
                                 href={`/?category=${c.slug}#tours`}
-                                className={`shrink-0 rounded-full border px-4 py-2 text-[14px] transition-colors ${
-                                    activeCategory === c.slug
-                                        ? 'border-ink bg-ink text-bone'
-                                        : 'border-line bg-bone text-ink hover:border-flame hover:text-flame'
-                                }`}
+                                active={activeCategory === c.slug}
                             >
                                 {c.name}
-                            </Link>
+                            </Chip>
                         ))}
                     </div>
                 )}
@@ -244,7 +253,7 @@ export default async function TourHome({
                     </div>
                 ) : (
                     <div className="rounded-card border border-dashed border-line bg-bone p-10 text-center">
-                        <p className="font-display text-[20px] text-ink">
+                        <p className="font-display text-[20px] font-semibold text-ink">
                             {hasCatalogue ? 'Nothing in that category yet' : 'The catalogue is on its way'}
                         </p>
                         <p className="mx-auto mt-2 max-w-md text-[14px] leading-relaxed text-stone">
@@ -254,7 +263,7 @@ export default async function TourHome({
                         </p>
                         <Link
                             href="/tours"
-                            className="mt-5 inline-block rounded-full bg-flame px-5 py-2.5 font-mono text-[11px] font-bold uppercase tracking-label text-white transition-colors hover:bg-ember"
+                            className="mt-5 inline-block rounded-field bg-flame px-5 py-2.5 font-mono text-[11px] font-bold uppercase tracking-label text-white transition-colors hover:bg-ember"
                         >
                             Browse everything
                         </Link>
@@ -267,7 +276,9 @@ export default async function TourHome({
                 <div className="mx-auto grid w-full max-w-6xl gap-8 px-5 py-12 sm:grid-cols-3">
                     <div>
                         <ShieldCheck className="h-5 w-5 text-flame" aria-hidden="true" />
-                        <h3 className="mt-3 font-display text-[17px] text-ink">Registered and accountable</h3>
+                        <h3 className="mt-3 font-display text-[17px] font-semibold text-ink">
+                            Registered and accountable
+                        </h3>
                         <p className="mt-1.5 text-[14px] leading-relaxed text-stone">
                             {settings?.company_name ?? 'Empiria'}
                             {settings?.registration_number
@@ -277,14 +288,14 @@ export default async function TourHome({
                         </p>
                     </div>
                     <div>
-                        <h3 className="font-display text-[17px] text-ink">All-in pricing</h3>
+                        <h3 className="font-display text-[17px] font-semibold text-ink">All-in pricing</h3>
                         <p className="mt-1.5 text-[14px] leading-relaxed text-stone">
                             Taxes and fees are broken out before you pay. The number you agree to is the
                             number charged.
                         </p>
                     </div>
                     <div>
-                        <h3 className="font-display text-[17px] text-ink">Talk to a person</h3>
+                        <h3 className="font-display text-[17px] font-semibold text-ink">Talk to a person</h3>
                         <p className="mt-1.5 text-[14px] leading-relaxed text-stone">
                             {settings?.contact_email ?? 'Contact details to follow.'}
                             {settings?.contact_phone ? ` · ${settings.contact_phone}` : ''}

@@ -1,14 +1,17 @@
 @import "tailwindcss";
 
 /*
-  Empiria Tours — Airbnb's spatial system, Empiria's palette.
+  Empiria Tours — Airbnb's structure, the field guide's geometry.
 
-  The colour story is unchanged: the brand flame (#F15A29) as the single accent
-  against a warm, ink-forward ground, with a mono wayfinding layer. What changed
-  is the SPACE — generous whitespace, soft-cornered image-forward cards, a
-  segmented search control, and elevation that appears on hover rather than
-  sitting there by default. Travellers already know that vocabulary; there is
-  nothing to gain from inventing our own.
+  The LAYOUT is borrowed: generous whitespace, an image-forward card grid, a
+  segmented search control, a filter rail beside results, a sticky cost panel.
+  Travellers already know that vocabulary.
+
+  The SURFACE is ours and unchanged from the original identity: squared corners,
+  hairline borders rather than soft rings, corner-bracket frames, the dashed
+  flame route motif, and the lift-and-light-up hover that has been on these
+  cards since the first build. Rounded pill-and-shadow was the shop's default,
+  not this brand's.
 
   Light-mode only: every surface is an explicit warm value, so the OS dark-mode
   preference can never flip text to an unreadable grey.
@@ -24,15 +27,14 @@
   --stone: #6c6255;   /* warm secondary text */
   --line: #e6ded1;    /* warm hairline / border */
 
-  /* Spatial system. Airbnb's proportions, warmed to this palette. */
-  --r-card: 14px;
-  --r-pill: 999px;
-  --r-field: 10px;
+  /* Squared geometry. Boxes, not pills. */
+  --r-card: 8px;      /* cards, plates, panels */
+  --r-field: 6px;     /* inputs and selects */
+  --r-chip: 4px;      /* badges, tags, small markers */
 
-  /* Elevation is a hover state, not a resting one. */
-  --lift-1: 0 2px 6px -2px rgb(23 19 15 / 0.10);
-  --lift-2: 0 12px 28px -12px rgb(23 19 15 / 0.24);
-  --lift-3: 0 24px 48px -20px rgb(23 19 15 / 0.30);
+  /* The card hover shadow, carried over verbatim from the original EventCard. */
+  --lift-card: 0 24px 40px -24px rgb(23 19 15 / 0.45);
+  --lift-panel: 0 18px 40px -20px rgb(23 19 15 / 0.35);
 }
 
 @theme inline {
@@ -47,10 +49,10 @@
 
   --radius-card: var(--r-card);
   --radius-field: var(--r-field);
+  --radius-chip: var(--r-chip);
 
-  --shadow-lift-1: var(--lift-1);
-  --shadow-lift-2: var(--lift-2);
-  --shadow-lift-3: var(--lift-3);
+  --shadow-lift-card: var(--lift-card);
+  --shadow-lift-panel: var(--lift-panel);
 
   --font-display: var(--font-bricolage);
   --font-sans: var(--font-instrument);
@@ -90,38 +92,62 @@ body {
 }
 
 /*
-  The segmented search control. Airbnb's shape — one pill, divided, each segment
-  its own hit target — with our hairline and flame rather than their grey.
+  The card hover, exactly as it was: rise, border lights to flame, deep soft
+  shadow underneath. The border doing the work — rather than a ring or a glow —
+  is what makes these read as drawn boxes.
 */
-.search-pill {
-  border-radius: var(--r-pill);
+.card-lift {
+  transition: transform 300ms ease, box-shadow 300ms ease, border-color 300ms ease;
+}
+.card-lift:hover {
+  transform: translateY(-4px);
+  border-color: var(--flame);
+  box-shadow: var(--lift-card);
+}
+
+/*
+  The segmented search control. Airbnb's division of labour — Where / When / Who
+  as separate hit targets in one frame — drawn as a squared plate with hairline
+  dividers instead of a pill.
+*/
+.search-bar {
+  border-radius: var(--r-card);
   background: var(--bone);
   border: 1px solid var(--line);
-  box-shadow: var(--lift-2);
+  transition: border-color 300ms ease, box-shadow 300ms ease;
 }
-.search-pill > * + * {
+.search-bar:focus-within {
+  border-color: var(--flame);
+  box-shadow: var(--lift-panel);
+}
+.search-bar > * + * {
   border-left: 1px solid var(--line);
 }
 .search-seg {
-  border-radius: var(--r-pill);
+  border-radius: var(--r-field);
   transition: background-color 140ms ease;
 }
 .search-seg:hover { background: color-mix(in srgb, var(--paper) 70%, transparent); }
-.search-seg:focus-within { background: color-mix(in srgb, var(--paper) 90%, transparent); }
 
 @media (max-width: 767px) {
-  .search-pill { border-radius: var(--r-card); }
-  .search-pill > * + * { border-left: 0; border-top: 1px solid var(--line); }
-  .search-seg { border-radius: var(--r-field); }
+  .search-bar > * + * { border-left: 0; border-top: 1px solid var(--line); }
 }
 
-/* Cards lift on hover; at rest they sit flat against the paper. */
-.card-lift {
-  transition: transform 180ms ease, box-shadow 180ms ease;
+/*
+  Corner-bracket frame — the field-guide plate. Four flame ticks on an inset
+  hairline box. Used on the hero and anywhere a panel should read as a surveyed
+  area rather than a card.
+*/
+.corner-frame { position: relative; }
+.corner-frame::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border: 1px solid rgb(255 255 255 / 0.10);
+  pointer-events: none;
 }
-.card-lift:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--lift-3);
+@media (min-width: 640px) {
+  .corner-frame::before { inset: 24px; }
 }
 
 /* Image placeholder while a package has no photography yet. */
@@ -145,6 +171,7 @@ body {
 }
 .animate-shake { animation: shake 0.4s ease-in-out; }
 
+/* The drifting itinerary thread. */
 @keyframes route-drift {
   from { stroke-dashoffset: 0; }
   to { stroke-dashoffset: -48; }
@@ -158,5 +185,6 @@ body {
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
+  /* Keep the colour change — it carries the hover state — drop the movement. */
   .card-lift:hover { transform: none; }
 }

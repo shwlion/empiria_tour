@@ -1,19 +1,21 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { MapPin, Clock, CalendarDays } from 'lucide-react';
+import { MapPin, Clock, CalendarDays, ArrowRight } from 'lucide-react';
 import { formatPrice, formatDepartureDate } from '@/lib/money';
 import type { PackageCard } from '@/lib/catalogue';
 
 /**
- * A tour card.
+ * A tour card — a drawn box, not a floating pill.
  *
- * Replaces the shop's EventCard, which was built around a single instant — a
- * date box with a clock time, a ticket price, an organizer. A tour has none of
- * those. What a traveller comparing trips actually needs is: where, how long,
- * what it starts at, and when the next one goes. That is the whole card.
+ * Structure follows the Airbnb pattern (image up top, facts beneath, price on
+ * the baseline). Surface and motion are the field-guide identity, carried over
+ * from the original EventCard: hairline border, squared corners, and on hover
+ * the whole box rises 4px, its border lights to flame, and a deep soft shadow
+ * appears underneath. The image pushes to 105% behind it.
  *
- * Image-forward with the text block beneath, in Airbnb's proportions. The flame
- * appears once, on the price, because that is the number people scan for.
+ * What changed from EventCard is the CONTENT, not the styling. That card was
+ * built around a single instant — a date box with a clock time, a ticket price,
+ * an organizer. A tour has a duration and a next departure instead.
  */
 export default function TourCard({
   pkg,
@@ -25,12 +27,8 @@ export default function TourCard({
   const soldOut = pkg.bookableDepartures === 0;
 
   return (
-    <Link
-      href={`/tours/${pkg.slug}`}
-      className="group card-lift block rounded-card focus-visible:outline-2"
-      aria-label={`${pkg.title}${pkg.destination ? `, ${pkg.destination.name}` : ''}`}
-    >
-      <article className="overflow-hidden rounded-card bg-bone ring-1 ring-line">
+    <Link href={`/tours/${pkg.slug}`} className="group block h-full">
+      <article className="card-lift flex h-full flex-col overflow-hidden rounded-card border border-line bg-bone">
         <div className="relative aspect-[4/3] w-full overflow-hidden">
           {pkg.heroImage ? (
             <Image
@@ -39,7 +37,7 @@ export default function TourCard({
               fill
               priority={priority}
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
             <div className="img-fallback flex h-full w-full items-center justify-center">
@@ -50,18 +48,18 @@ export default function TourCard({
           )}
 
           {pkg.category && (
-            <span className="absolute left-3 top-3 rounded-full bg-ink/85 px-2.5 py-1 font-mono text-[10px] uppercase tracking-label text-bone backdrop-blur-sm">
+            <span className="absolute left-3 top-3 z-10 rounded-chip bg-ink/90 px-2.5 py-1 font-mono text-[10px] uppercase tracking-label text-bone backdrop-blur-sm">
               {pkg.category.name}
             </span>
           )}
           {soldOut && (
-            <span className="absolute right-3 top-3 rounded-full bg-bone/95 px-2.5 py-1 font-mono text-[10px] uppercase tracking-label text-stone">
+            <span className="absolute right-3 top-3 z-10 rounded-chip bg-flame px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-label text-white">
               Sold out
             </span>
           )}
         </div>
 
-        <div className="flex flex-col gap-2 p-4">
+        <div className="flex flex-1 flex-col gap-2 p-4">
           {pkg.destination && (
             <p className="flex items-center gap-1.5 text-[13px] text-stone">
               <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
@@ -69,7 +67,7 @@ export default function TourCard({
             </p>
           )}
 
-          <h3 className="font-display text-[17px] leading-snug text-ink transition-colors group-hover:text-ember">
+          <h3 className="line-clamp-2 font-display text-[17px] font-semibold leading-tight tracking-tight text-ink transition-colors group-hover:text-flame">
             {pkg.title}
           </h3>
 
@@ -77,34 +75,39 @@ export default function TourCard({
             <p className="line-clamp-2 text-[14px] leading-relaxed text-stone">{pkg.summary}</p>
           )}
 
-          <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12.5px] text-stone">
+          {/* Facts as small bordered markers — the field-guide box vocabulary. */}
+          <div className="mt-1 flex flex-wrap items-center gap-2">
             {pkg.durationLabel && (
-              <span className="flex items-center gap-1.5">
-                <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              <span className="flex items-center gap-1.5 rounded-chip border border-line px-2 py-1 font-mono text-[10px] uppercase tracking-label text-stone">
+                <Clock className="h-3 w-3 shrink-0" aria-hidden="true" />
                 {pkg.durationLabel}
               </span>
             )}
             {pkg.nextDepartureOn && !soldOut && (
-              <span className="flex items-center gap-1.5">
-                <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                Next {formatDepartureDate(pkg.nextDepartureOn)}
+              <span className="flex items-center gap-1.5 rounded-chip border border-line px-2 py-1 font-mono text-[10px] uppercase tracking-label text-stone">
+                <CalendarDays className="h-3 w-3 shrink-0" aria-hidden="true" />
+                {formatDepartureDate(pkg.nextDepartureOn)}
               </span>
             )}
           </div>
 
-          <div className="mt-2 flex items-baseline justify-between border-t border-line pt-3">
-            <p className="text-ink">
-              <span className="font-mono text-[10px] uppercase tracking-label text-stone">From </span>
-              <span className="font-display text-[19px] text-flame">
-                {formatPrice(pkg.fromPriceCents, pkg.currency)}
+          <div className="mt-auto pt-3">
+            <div className="mb-3 border-t border-line" />
+            <div className="flex items-baseline justify-between gap-3">
+              <p className="text-ink">
+                <span className="font-mono text-[10px] uppercase tracking-label text-stone">From </span>
+                <span className="font-display text-[19px] font-semibold text-flame">
+                  {formatPrice(pkg.fromPriceCents, pkg.currency)}
+                </span>
+                <span className="ml-1 text-[12.5px] text-stone">pp</span>
+              </p>
+              <span className="flex shrink-0 items-center gap-1 font-mono text-[11px] font-bold uppercase tracking-wide text-flame group-hover:underline">
+                {pkg.bookableDepartures > 0
+                  ? `${pkg.bookableDepartures} ${pkg.bookableDepartures === 1 ? 'date' : 'dates'}`
+                  : 'View'}
+                <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
               </span>
-              <span className="ml-1 text-[12.5px] text-stone">per person</span>
-            </p>
-            {pkg.bookableDepartures > 0 && (
-              <span className="font-mono text-[10px] uppercase tracking-label text-stone">
-                {pkg.bookableDepartures} {pkg.bookableDepartures === 1 ? 'date' : 'dates'}
-              </span>
-            )}
+            </div>
           </div>
         </div>
       </article>

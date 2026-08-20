@@ -86,7 +86,7 @@ export default async function TourDetail({ params, searchParams }: Props) {
 
     return (
         <div className="min-h-screen bg-paper font-sans text-ink">
-            <Navbar />
+            <Navbar currency={currency} />
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -109,7 +109,7 @@ export default async function TourDetail({ params, searchParams }: Props) {
                     )}
                 </nav>
 
-                <h1 className="max-w-3xl font-display text-[32px] leading-[1.1] tracking-tight text-ink sm:text-[44px]">
+                <h1 className="max-w-3xl font-display text-[32px] font-semibold leading-[1.1] tracking-tight text-ink sm:text-[44px]">
                     {pkg.title}
                 </h1>
                 {pkg.summary && (
@@ -155,7 +155,7 @@ export default async function TourDetail({ params, searchParams }: Props) {
 
                         {pkg.overview && (
                             <div className="mb-12">
-                                <h2 className="font-display text-[24px] text-ink">About this trip</h2>
+                                <h2 className="font-display text-[24px] font-semibold tracking-tight text-ink">About this trip</h2>
                                 <p className="mt-4 whitespace-pre-line text-[16px] leading-relaxed text-stone">
                                     {pkg.overview}
                                 </p>
@@ -164,7 +164,7 @@ export default async function TourDetail({ params, searchParams }: Props) {
 
                         {pkg.itinerary.length > 0 && (
                             <div className="mb-12">
-                                <h2 className="font-display text-[24px] text-ink">Day by day</h2>
+                                <h2 className="font-display text-[24px] font-semibold tracking-tight text-ink">Day by day</h2>
                                 <ol className="mt-6 flex flex-col">
                                     {pkg.itinerary.map((d, i) => (
                                         <li key={d.position} className="relative flex gap-5 pb-8 last:pb-0">
@@ -174,11 +174,11 @@ export default async function TourDetail({ params, searchParams }: Props) {
                                                     aria-hidden="true"
                                                 />
                                             )}
-                                            <span className="z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ink font-mono text-[11px] text-bone">
+                                            <span className="z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-chip bg-ink font-mono text-[11px] text-bone">
                                                 {d.position}
                                             </span>
                                             <div className="min-w-0 flex-1 pt-0.5">
-                                                <h3 className="font-display text-[17px] text-ink">{d.title}</h3>
+                                                <h3 className="font-display text-[17px] font-semibold text-ink">{d.title}</h3>
                                                 {d.description && (
                                                     <p className="mt-1.5 text-[15px] leading-relaxed text-stone">
                                                         {d.description}
@@ -195,7 +195,7 @@ export default async function TourDetail({ params, searchParams }: Props) {
                             <div className="mb-12 grid gap-8 sm:grid-cols-2">
                                 {pkg.included.length > 0 && (
                                     <div>
-                                        <h2 className="font-display text-[19px] text-ink">What&rsquo;s included</h2>
+                                        <h2 className="font-display text-[19px] font-semibold tracking-tight text-ink">What&rsquo;s included</h2>
                                         <ul className="mt-4 flex flex-col gap-2.5">
                                             {pkg.included.map((t, i) => (
                                                 <li key={i} className="flex gap-2.5 text-[15px] leading-relaxed text-stone">
@@ -208,7 +208,7 @@ export default async function TourDetail({ params, searchParams }: Props) {
                                 )}
                                 {pkg.excluded.length > 0 && (
                                     <div>
-                                        <h2 className="font-display text-[19px] text-ink">Not included</h2>
+                                        <h2 className="font-display text-[19px] font-semibold tracking-tight text-ink">Not included</h2>
                                         <ul className="mt-4 flex flex-col gap-2.5">
                                             {pkg.excluded.map((t, i) => (
                                                 <li key={i} className="flex gap-2.5 text-[15px] leading-relaxed text-stone">
@@ -224,7 +224,7 @@ export default async function TourDetail({ params, searchParams }: Props) {
 
                         {pkg.roomTypes.length > 0 && (
                             <div className="mb-12">
-                                <h2 className="font-display text-[19px] text-ink">Where you stay</h2>
+                                <h2 className="font-display text-[19px] font-semibold tracking-tight text-ink">Where you stay</h2>
                                 <ul className="mt-4 flex flex-col gap-3">
                                     {pkg.roomTypes.map((r) => (
                                         <li key={r.id} className="flex items-start justify-between gap-4 rounded-field border border-line bg-bone p-4">
@@ -247,7 +247,7 @@ export default async function TourDetail({ params, searchParams }: Props) {
 
                         {(pkg.meetingPoint || pkg.whatToBring) && (
                             <div className="mb-12">
-                                <h2 className="font-display text-[19px] text-ink">Practical information</h2>
+                                <h2 className="font-display text-[19px] font-semibold tracking-tight text-ink">Practical information</h2>
                                 <dl className="mt-4 flex flex-col gap-4">
                                     {pkg.meetingPoint && (
                                         <div>
@@ -270,7 +270,7 @@ export default async function TourDetail({ params, searchParams }: Props) {
                             <div className="rounded-card border border-line bg-bone p-6">
                                 {pkg.cancellationPolicy && (
                                     <>
-                                        <h2 className="font-display text-[17px] text-ink">
+                                        <h2 className="font-display text-[17px] font-semibold text-ink">
                                             {pkg.cancellationPolicy.name}
                                         </h2>
                                         <p className="mt-2 whitespace-pre-line text-[14px] leading-relaxed text-stone">

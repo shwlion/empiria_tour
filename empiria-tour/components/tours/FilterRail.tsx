@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useCallback } from 'react';
-import type { DestinationOption } from './SearchPill';
+import type { DestinationOption } from './SearchBar';
 
 export type FilterOption = { slug: string; name: string };
 
@@ -145,8 +145,8 @@ export default function FilterRail({
                   type="button"
                   aria-pressed={on}
                   onClick={() => setParam('category', on ? null : c.slug)}
-                  className={`rounded-field px-3 py-2 text-left text-[14px] transition-colors ${
-                    on ? 'bg-ink text-bone' : 'text-ink hover:bg-bone'
+                  className={`rounded-chip border px-3 py-2 text-left text-[14px] transition-colors ${
+                    on ? 'border-ink bg-ink text-bone' : 'border-transparent text-ink hover:border-line hover:bg-bone'
                   }`}
                 >
                   {c.name}
@@ -169,8 +169,8 @@ export default function FilterRail({
                   type="button"
                   aria-pressed={on}
                   onClick={() => setParam('collection', on ? null : c.slug)}
-                  className={`rounded-field px-3 py-2 text-left text-[14px] transition-colors ${
-                    on ? 'bg-ink text-bone' : 'text-ink hover:bg-bone'
+                  className={`rounded-chip border px-3 py-2 text-left text-[14px] transition-colors ${
+                    on ? 'border-ink bg-ink text-bone' : 'border-transparent text-ink hover:border-line hover:bg-bone'
                   }`}
                 >
                   {c.name}

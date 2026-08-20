@@ -6,7 +6,7 @@ import { X } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import TourCard from '@/components/tours/TourCard';
-import SearchPill, { type DestinationOption } from '@/components/tours/SearchPill';
+import SearchBar, { type DestinationOption } from '@/components/tours/SearchBar';
 import FilterRail, { SortSelect } from '@/components/tours/FilterRail';
 import { absoluteUrl } from '@/lib/seo';
 import {
@@ -85,7 +85,7 @@ function ActiveFilters({ params, labels }: { params: Params; labels: Record<stri
                 <Link
                     key={k}
                     href={without(k)}
-                    className="group flex items-center gap-1.5 rounded-full border border-line bg-bone py-1.5 pl-3 pr-2 text-[13px] text-ink transition-colors hover:border-flame"
+                    className="group flex items-center gap-1.5 rounded-chip border border-line bg-bone py-1.5 pl-3 pr-2 font-mono text-[11px] uppercase tracking-label text-ink transition-colors hover:border-flame hover:text-flame"
                 >
                     {labels[`${k}:${v}`] ?? labels[k] ?? v}
                     <X className="h-3.5 w-3.5 text-stone transition-colors group-hover:text-flame" aria-hidden="true" />
@@ -149,10 +149,10 @@ export default async function ToursPage({
 
     return (
         <div className="min-h-screen bg-paper font-sans text-ink">
-            <Navbar />
+            <Navbar currency={currency} />
 
             <section className="mx-auto w-full max-w-6xl px-5 pt-8">
-                <h1 className="font-display text-[30px] leading-tight text-ink sm:text-[36px]">
+                <h1 className="font-display text-[30px] font-semibold leading-tight tracking-tight text-ink sm:text-[36px]">
                     {destination ? destination.name : 'Every trip we run'}
                 </h1>
                 {destination?.description && (
@@ -162,7 +162,7 @@ export default async function ToursPage({
                 )}
                 <div className="mt-6">
                     <Suspense fallback={<div className="h-20" />}>
-                        <SearchPill
+                        <SearchBar
                             compact
                             destinations={destinationOptions}
                             initial={{
@@ -218,7 +218,7 @@ export default async function ToursPage({
                                                 key={n}
                                                 href={pageHref(n)}
                                                 aria-current={n === results.page ? 'page' : undefined}
-                                                className={`min-w-10 rounded-full border px-3 py-2 text-center text-[14px] transition-colors ${
+                                                className={`min-w-10 rounded-chip border px-3 py-2 text-center font-mono text-[12px] transition-colors ${
                                                     n === results.page
                                                         ? 'border-ink bg-ink text-bone'
                                                         : 'border-line bg-bone text-ink hover:border-flame hover:text-flame'
@@ -233,23 +233,23 @@ export default async function ToursPage({
                         ) : (
                             /* A3: empty state with suggested alternatives, not a dead end. */
                             <div className="rounded-card border border-dashed border-line bg-bone p-10 text-center">
-                                <p className="font-display text-[21px] text-ink">Nothing matches all of that</p>
+                                <p className="font-display text-[21px] font-semibold text-ink">Nothing matches all of that</p>
                                 <p className="mx-auto mt-2 max-w-md text-[14px] leading-relaxed text-stone">
                                     Departures are fixed dates, so narrowing by month and party size together
                                     can rule everything out. Try widening one of them.
                                 </p>
                                 <div className="mt-6 flex flex-wrap justify-center gap-2">
                                     {params.month && (
-                                        <Link href={pageHref(1).replace(/[?&]month=[^&]*/, '')} className="rounded-full border border-line bg-paper px-4 py-2 text-[14px] hover:border-flame">
+                                        <Link href={pageHref(1).replace(/[?&]month=[^&]*/, '')} className="rounded-chip border border-line bg-paper px-4 py-2 font-mono text-[11px] uppercase tracking-label transition-colors hover:border-flame hover:text-flame">
                                             Any month
                                         </Link>
                                     )}
                                     {params.destination && (
-                                        <Link href="/tours" className="rounded-full border border-line bg-paper px-4 py-2 text-[14px] hover:border-flame">
+                                        <Link href="/tours" className="rounded-chip border border-line bg-paper px-4 py-2 font-mono text-[11px] uppercase tracking-label transition-colors hover:border-flame hover:text-flame">
                                             Anywhere
                                         </Link>
                                     )}
-                                    <Link href="/tours" className="rounded-full bg-flame px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-label text-white hover:bg-ember">
+                                    <Link href="/tours" className="rounded-field bg-flame px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-label text-white transition-colors hover:bg-ember">
                                         Show everything
                                     </Link>
                                 </div>
