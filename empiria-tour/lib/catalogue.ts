@@ -615,7 +615,7 @@ export const getPlatformSettings = cache(async () => {
   if (!db) return null;
   const { data } = await db
     .from('platform_settings')
-    .select('company_name, registration_number, statutory_notice, contact_email, contact_phone, contact_address, default_currency, social_links')
+    .select('company_name, registration_number, statutory_notice, contact_email, contact_phone, contact_address, default_currency, social_links, tax_rates, hold_minutes')
     .maybeSingle();
   return data;
 });

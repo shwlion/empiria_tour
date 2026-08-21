@@ -2,7 +2,13 @@ import { redirect } from 'next/navigation';
 import { isSupabaseConfigured } from './supabase/config';
 import { createClient } from './supabase/server';
 
-export type Role = 'customer' | 'partner' | 'admin';
+/**
+ * Exhibit A's role names, which migration 0002 made the database's names too.
+ * This union said `customer` until now, inherited from the sibling shop app —
+ * so `requireRole('customer')` could never have matched a row, and the mismatch
+ * would only have surfaced the first time a page tried to gate on it.
+ */
+export type Role = 'traveller' | 'partner' | 'agent' | 'admin';
 
 export interface SessionUser {
   id: string;

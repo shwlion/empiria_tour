@@ -1,6 +1,3 @@
-// Generated from the Empiria Tours Supabase project (wnaleobzkoukdzlruouu).
-// Do not edit by hand. Regenerate after any migration with:
-//   supabase gen types typescript --project-id wnaleobzkoukdzlruouu > lib/database.types.ts
 export type Json =
   | string
   | number
@@ -149,6 +146,7 @@ export type Database = {
       }
       booking_holds: {
         Row: {
+          booking_id: string | null
           created_at: string
           departure_id: string
           expires_at: string
@@ -159,6 +157,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          booking_id?: string | null
           created_at?: string
           departure_id: string
           expires_at: string
@@ -169,6 +168,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          booking_id?: string | null
           created_at?: string
           departure_id?: string
           expires_at?: string
@@ -179,6 +179,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "booking_holds_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "booking_holds_departure_id_fkey"
             columns: ["departure_id"]
@@ -1326,6 +1333,7 @@ export type Database = {
           default_currency: string
           hold_minutes: number
           id: boolean
+          payment_window_minutes: number
           registration_number: string | null
           social_links: Json
           statutory_notice: string | null
@@ -1341,6 +1349,7 @@ export type Database = {
           default_currency?: string
           hold_minutes?: number
           id?: boolean
+          payment_window_minutes?: number
           registration_number?: string | null
           social_links?: Json
           statutory_notice?: string | null
@@ -1356,6 +1365,7 @@ export type Database = {
           default_currency?: string
           hold_minutes?: number
           id?: boolean
+          payment_window_minutes?: number
           registration_number?: string | null
           social_links?: Json
           statutory_notice?: string | null
@@ -1674,6 +1684,78 @@ export type Database = {
       }
     }
     Functions: {
+      claim_seats: {
+        Args: {
+          p_departure: string
+          p_seats: number
+          p_session: string
+          p_user?: string
+        }
+        Returns: {
+          booking_id: string | null
+          created_at: string
+          departure_id: string
+          expires_at: string
+          id: string
+          released_at: string | null
+          seats: number
+          session_token: string
+          user_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "booking_holds"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      confirm_hold_seats: { Args: { p_booking: string }; Returns: boolean }
+      create_booking: {
+        Args: { p_payload: Json }
+        Returns: {
+          adults: number
+          amount_paid_cents: number
+          balance_cents: number | null
+          balance_due_on: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          children: number
+          created_at: string
+          currency: string
+          departure_id: string
+          deposit_due_cents: number
+          discount_cents: number
+          fees_cents: number
+          fx_rate_to_base: number | null
+          id: string
+          infants: number
+          lead_address: Json | null
+          lead_email: string
+          lead_name: string
+          lead_phone: string | null
+          notes_internal: string | null
+          package_id: string
+          promotion_id: string | null
+          reference: string
+          room_type_id: string | null
+          single_supplement: boolean
+          status: string
+          subtotal_cents: number
+          supplier_cost_base_cents: number | null
+          supplier_cost_cents: number | null
+          tax_cents: number
+          total_base_cents: number | null
+          total_cents: number
+          updated_at: string
+          user_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "bookings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       current_role: { Args: never; Returns: string }
       departure_seats_available: {
         Args: { d: Database["public"]["Tables"]["departures"]["Row"] }
@@ -1683,11 +1765,20 @@ export type Database = {
         Args: { p_currency: string; p_departure_id: string }
         Returns: number
       }
+      expire_stale_holds: { Args: { p_departure?: string }; Returns: number }
+      extend_hold: {
+        Args: { p_hold: string; p_session: string }
+        Returns: string
+      }
       is_admin: { Args: never; Returns: boolean }
       is_partner: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
       next_booking_reference: { Args: never; Returns: string }
       owns_package: { Args: { pkg: string }; Returns: boolean }
+      release_hold: {
+        Args: { p_hold: string; p_session: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

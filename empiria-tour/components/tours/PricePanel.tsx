@@ -1,10 +1,10 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { formatPrice, formatDateRange, seatsLabel } from '@/lib/money';
+import { quote, validateSelection, headcountFor, type PricingInputs, type TaxRule } from '@/lib/pricing';
 import type { PackageDetail } from '@/lib/catalogue';
-
-type Line = { label: string; detail?: string; cents: number };
 
 /**
  * A4's live cost panel.
@@ -14,11 +14,20 @@ type Line = { label: string; detail?: string; cents: number };
  * A4 requirements, and Part D wants the all-in figure with components visible
  * rather than a single number that appears from nowhere.
  *
- * The arithmetic here is for DISPLAY. The booking flow recomputes server-side
- * and writes the result to `booking_price_lines`, because a price a browser
- * calculated is not a price anyone should be charged.
+ * The arithmetic is `lib/pricing.ts`, the same module the booking flow renders
+ * with and the server recomputes with before writing anything. It used to have
+ * its own copy of the sums; that copy had no taxes or fees in it, so the number
+ * here and the number at checkout were destined to disagree the moment Empiria
+ * configured a tax rate. Now there is one implementation and three callers.
  */
-export default function PricePanel({ pkg }: { pkg: PackageDetail }) {
+export default function PricePanel({
+  pkg,
+  taxRules = [],
+}: {
+  pkg: PackageDetail;
+  /** From `platform_settings.tax_rates`. Empty means nothing is added. */
+  taxRules?: TaxRule[];
+}) {
   const bookable = pkg.departures.filter((d) => d.seatsAvailable > 0);
   const [departureId, setDepartureId] = useState(bookable[0]?.id ?? '');
   const [adults, setAdults] = useState(2);
@@ -30,78 +39,60 @@ export default function PricePanel({ pkg }: { pkg: PackageDetail }) {
   const [chosenExtras, setChosenExtras] = useState<Record<string, number>>({});
 
   const departure = pkg.departures.find((d) => d.id === departureId);
-  const room = pkg.roomTypes.find((r) => r.id === roomTypeId);
 
-  const { lines, total, deposit, balanceDueOn } = useMemo(() => {
-    const out: Line[] = [];
-    const perPerson = departure?.pricePerPersonCents ?? pkg.fromPriceCents ?? 0;
-    const childPer = departure?.childPriceCents ?? pkg.childPriceCents ?? perPerson;
-    const infantPer = pkg.infantPriceCents ?? 0;
+  const inputs: PricingInputs = useMemo(
+    () => ({
+      currency: pkg.currency,
+      adultPriceCents: departure?.pricePerPersonCents ?? pkg.fromPriceCents ?? 0,
+      childPriceCents: departure?.childPriceCents ?? pkg.childPriceCents,
+      infantPriceCents: pkg.infantPriceCents,
+      singleSupplementCents: pkg.singleSupplementCents,
+      roomTypes: pkg.roomTypes,
+      extras: pkg.extras,
+      deposit: pkg.deposit,
+      taxRules,
+      departureStartsOn: departure?.startsOn ?? null,
+    }),
+    [pkg, departure, taxRules]
+  );
 
-    if (adults > 0) {
-      out.push({
-        label: 'Adults',
-        detail: `${formatPrice(perPerson, pkg.currency)} × ${adults}`,
-        cents: perPerson * adults,
-      });
-    }
-    if (children > 0) {
-      out.push({
-        label: 'Children',
-        detail: `${formatPrice(childPer, pkg.currency)} × ${children}`,
-        cents: childPer * children,
-      });
-    }
-    if (infants > 0) {
-      out.push({
-        label: 'Infants',
-        detail: infantPer === 0 ? 'No charge' : `${formatPrice(infantPer, pkg.currency)} × ${infants}`,
-        cents: infantPer * infants,
-      });
-    }
-    // A lone adult in a twin room pays the supplement.
-    if (adults === 1 && children === 0 && pkg.singleSupplementCents > 0) {
-      out.push({ label: 'Single supplement', cents: pkg.singleSupplementCents });
-    }
-    if (room && room.priceAdjustmentCents !== 0) {
-      out.push({
-        label: room.name,
-        detail: `${formatPrice(room.priceAdjustmentCents, pkg.currency)} × ${adults + children}`,
-        cents: room.priceAdjustmentCents * (adults + children),
-      });
-    }
-    for (const [id, qty] of Object.entries(chosenExtras)) {
-      if (!qty) continue;
-      const x = pkg.extras.find((e) => e.id === id);
-      if (!x) continue;
-      const units = x.per === 'person' ? qty : 1;
-      out.push({
-        label: x.name,
-        detail: x.per === 'person' ? `${formatPrice(x.priceCents, pkg.currency)} × ${units}` : undefined,
-        cents: x.priceCents * units,
-      });
-    }
+  const selection = useMemo(
+    () => ({
+      party: { adults, children, infants },
+      roomTypeId: roomTypeId || null,
+      extras: chosenExtras,
+      promotion: null,
+    }),
+    [adults, children, infants, roomTypeId, chosenExtras]
+  );
 
-    const sum = out.reduce((n, l) => n + l.cents, 0);
+  const q = useMemo(() => quote(inputs, selection), [inputs, selection]);
+  const problems = useMemo(
+    () => validateSelection(inputs, selection, departure?.seatsAvailable ?? 0),
+    [inputs, selection, departure?.seatsAvailable]
+  );
 
-    let dep = 0;
-    if (pkg.deposit.type === 'percent') dep = Math.round((sum * pkg.deposit.value) / 100);
-    else if (pkg.deposit.type === 'fixed') dep = Math.min(pkg.deposit.value, sum);
+  const pax = q.seats;
+  const headcount = headcountFor(selection.party);
 
-    let due: string | null = null;
-    if (dep > 0 && departure?.startsOn) {
-      const [y, m, d] = departure.startsOn.split('-').map(Number);
-      const dt = new Date(Date.UTC(y, m - 1, d));
-      dt.setUTCDate(dt.getUTCDate() - pkg.deposit.balanceDueDaysBefore);
-      due = dt.toISOString().slice(0, 10);
-    }
-
-    return { lines: out, total: sum, deposit: dep, balanceDueOn: due };
-  }, [departure, adults, children, infants, room, chosenExtras, pkg]);
-
-  const pax = adults + children;
-  const overCapacity = departure ? pax > departure.seatsAvailable : false;
-  const overRoom = room ? pax > room.maxOccupancy : false;
+  // Carry the selection into A5 so nobody answers the same questions twice.
+  const bookHref = departure
+    ? `/book/${departure.id}?${new URLSearchParams({
+        currency: pkg.currency,
+        adults: String(adults),
+        children: String(children),
+        infants: String(infants),
+        ...(roomTypeId ? { room: roomTypeId } : {}),
+        ...(Object.entries(chosenExtras).some(([, n]) => n > 0)
+          ? {
+              extras: Object.entries(chosenExtras)
+                .filter(([, n]) => n > 0)
+                .map(([id, n]) => `${id}:${n}`)
+                .join(','),
+            }
+          : {}),
+      }).toString()}`
+    : '';
 
   const label = 'block font-mono text-[10px] uppercase tracking-label text-stone';
   const field =
@@ -200,7 +191,7 @@ export default function PricePanel({ pkg }: { pkg: PackageDetail }) {
                           onChange={(e) =>
                             setChosenExtras((prev) => ({
                               ...prev,
-                              [x.id]: e.target.checked ? (x.per === 'person' ? pax : 1) : 0,
+                              [x.id]: e.target.checked ? (x.per === 'person' ? headcount : 1) : 0,
                             }))
                           }
                           className="mt-0.5 h-4 w-4 accent-[var(--flame)]"
@@ -226,14 +217,14 @@ export default function PricePanel({ pkg }: { pkg: PackageDetail }) {
           {/* ── Itemised breakdown (A4 + Part D) ───────────────────────── */}
           <div className="mt-6 border-t border-line pt-4">
             <ul className="flex flex-col gap-2">
-              {lines.map((l, i) => (
-                <li key={i} className="flex items-baseline justify-between gap-4 text-[14px]">
+              {q.lines.map((l, i) => (
+                <li key={`${l.kind}-${i}`} className="flex items-baseline justify-between gap-4 text-[14px]">
                   <span className="text-ink">
                     {l.label}
                     {l.detail && <span className="ml-1.5 text-[12.5px] text-stone">{l.detail}</span>}
                   </span>
-                  <span className="shrink-0 tabular-nums text-ink">
-                    {formatPrice(l.cents, pkg.currency)}
+                  <span className={`shrink-0 tabular-nums ${l.amountCents < 0 ? 'text-flame' : 'text-ink'}`}>
+                    {formatPrice(l.amountCents, pkg.currency)}
                   </span>
                 </li>
               ))}
@@ -242,48 +233,59 @@ export default function PricePanel({ pkg }: { pkg: PackageDetail }) {
             <div className="mt-4 flex items-baseline justify-between border-t border-line pt-4">
               <span className="font-display text-[17px] font-semibold text-ink">Total</span>
               <span className="font-display text-[22px] tabular-nums text-ink">
-                {formatPrice(total, pkg.currency)}
+                {formatPrice(q.totalCents, pkg.currency)}
               </span>
             </div>
             <p className="mt-1 text-[12.5px] text-stone">
               All in, for {pax} {pax === 1 ? 'traveller' : 'travellers'}
-              {infants > 0 && ` plus ${infants} ${infants === 1 ? 'infant' : 'infants'}`}. Taxes and
-              fees are itemised before payment.
+              {infants > 0 && ` plus ${infants} ${infants === 1 ? 'infant' : 'infants'}`}.
+              {taxRules.length > 0 ? ' Taxes and fees are itemised above.' : ' Taxes and fees are itemised before payment.'}
             </p>
 
-            {deposit > 0 && (
+            {q.depositDueCents > 0 && (
               <div className="mt-4 rounded-field bg-paper p-3">
                 <div className="flex items-baseline justify-between text-[14px]">
                   <span className="text-ink">Due today</span>
                   <span className="font-display text-[17px] tabular-nums text-flame">
-                    {formatPrice(deposit, pkg.currency)}
+                    {formatPrice(q.depositDueCents, pkg.currency)}
                   </span>
                 </div>
                 <div className="mt-1 flex items-baseline justify-between text-[13px] text-stone">
                   <span>
-                    Balance{balanceDueOn && ` by ${formatDateRange(balanceDueOn, null)}`}
+                    Balance{q.balanceDueOn && ` by ${formatDateRange(q.balanceDueOn, null)}`}
                   </span>
-                  <span className="tabular-nums">{formatPrice(total - deposit, pkg.currency)}</span>
+                  <span className="tabular-nums">{formatPrice(q.balanceCents, pkg.currency)}</span>
                 </div>
               </div>
             )}
           </div>
 
-          {(overCapacity || overRoom) && (
-            <p className="mt-4 rounded-field bg-paper p-3 text-[13px] leading-relaxed text-ember">
-              {overCapacity
-                ? `Only ${departure?.seatsAvailable} ${departure?.seatsAvailable === 1 ? 'place' : 'places'} left on that departure.`
-                : `${room?.name} sleeps ${room?.maxOccupancy}. Choose another room or split the party.`}
-            </p>
+          {problems.length > 0 && (
+            <ul className="mt-4 flex flex-col gap-1 rounded-field bg-paper p-3">
+              {problems.map((p) => (
+                <li key={p.message} className="text-[13px] leading-relaxed text-ember">
+                  {p.message}
+                </li>
+              ))}
+            </ul>
           )}
 
-          <button
-            type="button"
-            disabled={overCapacity || overRoom || pax === 0}
-            className="mt-5 w-full rounded-field bg-flame px-6 py-3.5 font-mono text-[11px] font-bold uppercase tracking-label text-white transition-colors hover:bg-ember disabled:cursor-not-allowed disabled:bg-stone/40"
-          >
-            Book now
-          </button>
+          {problems.length === 0 && departure ? (
+            <Link
+              href={bookHref}
+              className="mt-5 block w-full rounded-field bg-flame px-6 py-3.5 text-center font-mono text-[11px] font-bold uppercase tracking-label text-white transition-colors hover:bg-ember"
+            >
+              Book now
+            </Link>
+          ) : (
+            <button
+              type="button"
+              disabled
+              className="mt-5 w-full cursor-not-allowed rounded-field bg-stone/40 px-6 py-3.5 font-mono text-[11px] font-bold uppercase tracking-label text-white"
+            >
+              Book now
+            </button>
+          )}
           <p className="mt-3 text-center text-[12px] text-stone">
             You will not be charged until the final step.
           </p>

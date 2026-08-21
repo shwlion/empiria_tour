@@ -9,7 +9,8 @@ import Footer from '@/components/Footer';
 import PricePanel from '@/components/tours/PricePanel';
 import { absoluteUrl } from '@/lib/seo';
 import { formatPrice } from '@/lib/money';
-import { getDefaultCurrency, getDisclosures, getPackageBySlug } from '@/lib/catalogue';
+import { getDefaultCurrency, getDisclosures, getPackageBySlug, getPlatformSettings } from '@/lib/catalogue';
+import { parseTaxRules } from '@/lib/pricing';
 
 type Props = {
     params: Promise<{ slug: string }>;
@@ -48,7 +49,15 @@ export default async function TourDetail({ params, searchParams }: Props) {
     const pkg = await getPackageBySlug(slug, currency);
     if (!pkg) notFound();
 
-    const notices = await getDisclosures('package_page', pkg.id);
+    const [notices, settings] = await Promise.all([
+        getDisclosures('package_page', pkg.id),
+        getPlatformSettings(),
+    ]);
+    // The panel prices with the same engine the booking flow and the server use,
+    // so the total shown here is the total charged. That only holds if it sees
+    // the same tax rules — hence passing them down rather than leaving the panel
+    // to quietly omit them.
+    const taxRules = parseTaxRules(settings?.tax_rates);
     const facts = [
         pkg.durationLabel && { icon: Clock, label: 'Length', value: pkg.durationLabel },
         pkg.destination && { icon: MapPin, label: 'Where', value: pkg.destination.name },
@@ -288,7 +297,7 @@ export default async function TourDetail({ params, searchParams }: Props) {
                     </div>
 
                     <aside className="lg:sticky lg:top-28 lg:self-start">
-                        <PricePanel pkg={pkg} />
+                        <PricePanel pkg={pkg} taxRules={taxRules} />
                     </aside>
                 </div>
             </section>

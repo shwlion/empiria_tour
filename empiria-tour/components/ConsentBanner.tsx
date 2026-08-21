@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useConsent, writeConsent } from '@/lib/consent';
 
@@ -25,18 +25,42 @@ import { useConsent, writeConsent } from '@/lib/consent';
 export default function ConsentBanner() {
   const consent = useConsent();
   const [dismissed, setDismissed] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // `undefined` is the pre-hydration state — render nothing rather than flash
+  // the banner at people who decided months ago.
+  const visible = !dismissed && consent === null;
+
+  // The banner is fixed to the bottom of the viewport, which means it sits on
+  // top of whatever is at the end of the page — including, on the booking flow,
+  // the button that submits the booking. Reserving the space it occupies is the
+  // difference between a notice and an obstruction. Measured rather than
+  // hard-coded, because the copy wraps to two lines on a narrow screen.
+  useEffect(() => {
+    const el = ref.current;
+    if (!visible || !el) return;
+    const apply = () => {
+      document.body.style.paddingBottom = `${el.offsetHeight + 24}px`;
+    };
+    apply();
+    const observer = new ResizeObserver(apply);
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+      document.body.style.paddingBottom = '';
+    };
+  }, [visible]);
 
   function decide(analytics: boolean) {
     writeConsent(analytics);
     setDismissed(true);
   }
 
-  // `undefined` is the pre-hydration state — render nothing rather than flash
-  // the banner at people who decided months ago.
-  if (dismissed || consent !== null) return null;
+  if (!visible) return null;
 
   return (
     <div
+      ref={ref}
       role="dialog"
       aria-label="Cookie and analytics consent"
       className="fixed inset-x-3 bottom-3 z-[60] sm:inset-x-6 sm:bottom-6"
