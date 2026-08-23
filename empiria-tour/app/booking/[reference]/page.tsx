@@ -3,21 +3,25 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
-import { CircleCheck, CreditCard } from 'lucide-react';
+import { CircleCheck } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { getBookingForViewer } from '@/lib/booking';
 import { getUser } from '@/lib/auth';
+import { isStripeConfigured, isTestMode } from '@/lib/stripe';
+import PaymentPanel from '@/components/booking/PaymentPanel';
 import { formatPrice, formatDateRange } from '@/lib/money';
 
 /**
- * The booking, after A5 and before A6.
+ * The booking, and the place it gets paid for.
  *
- * Right now it is the end of the flow: the seats are reserved and the record is
- * complete, but Empiria has not yet handed over their Stripe account, so there
- * is nothing to charge with. The page says exactly that rather than implying a
- * payment happened — and when A6 lands, the payment panel goes in the space
- * below, on the same URL the traveller already has.
+ * The same URL the traveller has held since A5 created the record, which is why
+ * the payment panel went here rather than on a checkout route of its own: a
+ * booking whose payment lives somewhere else is a booking somebody loses.
+ *
+ * Nothing on this page decides whether money arrived. Stripe's return URL only
+ * says the traveller came back; the webhook is what tells the database, and
+ * until it has, the panel says so rather than guessing.
  */
 export const dynamic = 'force-dynamic';
 
@@ -44,10 +48,13 @@ const STATUS_COPY: Record<string, { title: string; detail: string }> = {
 
 export default async function BookingPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ reference: string }>;
+  searchParams: Promise<{ paid?: string; cancelled?: string }>;
 }) {
   const { reference } = await params;
+  const { paid, cancelled } = await searchParams;
   const jar = await cookies();
   const user = await getUser();
 
@@ -64,11 +71,6 @@ export default async function BookingPage({
     title: 'Your booking',
     detail: '',
   };
-  const due =
-    booking.totals.depositDueCents > 0
-      ? booking.totals.depositDueCents
-      : booking.totals.totalCents;
-
   return (
     <div className="flex min-h-screen flex-col bg-paper font-sans text-ink">
       <Navbar currency={booking.currency} />
@@ -174,30 +176,20 @@ export default async function BookingPage({
           </>
         )}
 
-        {booking.status === 'pending_payment' && (
-          <div className="mt-10 rounded-card border border-line bg-bone p-5">
-            <p className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-label text-flame">
-              <CreditCard className="h-3.5 w-3.5" aria-hidden="true" />
-              Payment
-            </p>
-            <p className="mt-3 text-[15px] leading-relaxed text-ink">
-              {formatPrice(due, booking.currency)} is due to confirm these places
-              {booking.totals.depositDueCents > 0 && (
-                <>
-                  , with {formatPrice(booking.totals.balanceCents, booking.currency)} to follow
-                  {booking.totals.balanceDueOn &&
-                    ` by ${formatDateRange(booking.totals.balanceDueOn, null)}`}
-                </>
-              )}
-              .
-            </p>
-            <p className="mt-3 text-[13.5px] leading-relaxed text-stone">
-              Card payment is not switched on for this site yet. Our team will contact you at{' '}
-              <span className="text-ink">{booking.lead.email}</span> to take payment and confirm.
-              Quote your reference and nothing else is needed.
-            </p>
-          </div>
-        )}
+        <PaymentPanel
+          reference={booking.reference}
+          status={booking.status}
+          currency={booking.currency}
+          totalCents={booking.totals.totalCents}
+          amountPaidCents={booking.totals.amountPaidCents}
+          depositDueCents={booking.totals.depositDueCents}
+          balanceDueOn={booking.totals.balanceDueOn}
+          leadEmail={booking.lead.email}
+          configured={isStripeConfigured()}
+          testMode={isTestMode()}
+          justReturned={paid === '1'}
+          cancelled={cancelled === '1'}
+        />
 
         <p className="mt-8 text-[13px] leading-relaxed text-stone">
           Keep this reference. Questions about the booking? Reply to the confirmation email or get in
