@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { createClient } from '@/lib/supabase/client';
 
@@ -171,6 +172,23 @@ export default function LoginForm() {
             >
               {mode === 'signin' ? 'Create one' : 'Sign in'}
             </button>
+          </p>
+
+          {/*
+            The other door.
+
+            An account here is a traveller account, always — the role is set by
+            the database, never by anything this form could send. Somebody who
+            came to sell tours rather than book one needs telling that, and
+            where to go instead, or they will make a traveller account and
+            wonder why there is nothing in it.
+          */}
+          <p className="mt-4 border-t border-line pt-4 text-center text-xs leading-relaxed text-stone">
+            Run tours and want to sell them here?{' '}
+            <Link href="/partners" className="font-semibold text-flame transition-colors hover:text-ember">
+              Apply to become a partner
+            </Link>
+            {' '}— it is a different sort of account, and we review each one.
           </p>
         </>
       )}

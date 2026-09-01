@@ -69,13 +69,20 @@ export default async function Footer() {
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-10 md:grid-cols-3">
+          <div className="grid grid-cols-2 gap-10 md:grid-cols-4">
             {/* Travel */}
             <div className="flex flex-col gap-3">
               <span className={headClass}>Travel</span>
               <Link href="/tours" className={linkClass}>All tours</Link>
               <Link href="/tours?sort=departure" className={linkClass}>Departing soon</Link>
               <Link href="/bookings" className={linkClass}>My bookings</Link>
+            </div>
+
+            {/* Operators, not travellers. A separate door rather than a choice
+                at signup: the role is granted after review, never selected. */}
+            <div className="flex flex-col gap-3">
+              <span className={headClass}>Operators</span>
+              <Link href="/partners" className={linkClass}>Sell your tours</Link>
             </div>
 
             {/* The legal set A1 asks for by name */}
