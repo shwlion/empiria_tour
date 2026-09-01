@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import type Stripe from 'stripe';
 import { getStripe } from '@/lib/stripe';
 import { recordStripePayment, settledFromSession } from '@/lib/payments';
+import { enqueueForPayment, enqueueRefundIssued } from '@/lib/email/outbox';
 import { fromStripeAmount } from '@/lib/stripe';
 
 /**
@@ -92,6 +93,12 @@ export async function POST(request: NextRequest) {
           providerRef: settled.providerRef,
           processorFeeCents: settled.processorFeeCents,
         });
+
+        // Part C. After the money is recorded, never before: an email saying a
+        // booking is confirmed must not go out ahead of the row that makes it
+        // true. Enqueueing only writes to the outbox — the send happens on the
+        // next tick — so a slow mail provider cannot hold up this response.
+        await enqueueForPayment(settled.bookingId, settled.amountCents);
         break;
       }
 
@@ -137,6 +144,13 @@ export async function POST(request: NextRequest) {
           // per refund, and the amount is cumulative — so the id must vary.
           providerRef: `${charge.id}:refund:${charge.amount_refunded}`,
         });
+
+        await enqueueRefundIssued(
+          bookingId,
+          charge.amount_refunded,
+          'the card originally used',
+          `${charge.id}:${charge.amount_refunded}`
+        );
         break;
       }
     }

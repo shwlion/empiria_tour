@@ -22,10 +22,17 @@ export function getStripe(): Stripe | null {
   if (!key) return null;
   if (!cached) {
     cached = new Stripe(key, {
-      // Pinned deliberately. Stripe ships breaking changes behind versions, and
-      // a webhook payload that quietly changes shape is the worst place to
-      // discover an upgrade.
-      apiVersion: '2026-07-29.dahlia',
+      // No `apiVersion` here, deliberately.
+      //
+      // Stripe ships breaking changes behind dated versions, so pinning one
+      // looks like the careful choice — but the SDK's types accept exactly the
+      // single version that SDK was built against, so a hardcoded string is not
+      // an independent pin at all. It is a duplicate of the SDK version that
+      // fails to compile the moment the two drift, which is what happened here.
+      //
+      // The real pin is the lockfile: it fixes the SDK, and the SDK fixes the
+      // API version. Upgrading Stripe is therefore the deliberate act that
+      // changes payload shapes, and it is visible in a diff of package.json.
       appInfo: { name: 'Empiria Tours', version: '1.0.0' },
       typescript: true,
     });
