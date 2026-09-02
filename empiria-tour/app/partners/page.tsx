@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import ApplyForm from './ApplyForm';
 import { getPlatformSettings } from '@/lib/catalogue';
+import { PARTNER_URL } from '@/lib/urls';
 
 export const metadata: Metadata = {
   title: 'Sell your tours with Empiria',
@@ -75,6 +76,17 @@ export default async function PartnersPage() {
           </li>
         </ol>
       </div>
+
+      <p className="mt-10 rounded-card border border-line bg-bone px-5 py-4 text-[14px] leading-relaxed text-stone">
+        <span className="font-semibold text-ink">Already work with us?</span>{' '}
+        <a
+          href={`${PARTNER_URL}/dashboard`}
+          className="font-semibold text-flame underline underline-offset-4 transition-colors hover:text-ember"
+        >
+          Sign in to your dashboard
+        </a>
+        {' '}— your tours, your dates and every booking on them.
+      </p>
 
       <div className="mt-12">
         <h2 className="font-display text-2xl text-ink">Tell us about your business</h2>
