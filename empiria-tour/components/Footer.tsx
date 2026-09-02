@@ -75,7 +75,6 @@ export default async function Footer() {
               <span className={headClass}>Travel</span>
               <Link href="/tours" className={linkClass}>All tours</Link>
               <Link href="/tours?sort=departure" className={linkClass}>Departing soon</Link>
-              <Link href="/bookings" className={linkClass}>My bookings</Link>
             </div>
 
             {/* Operators, not travellers. A separate door rather than a choice

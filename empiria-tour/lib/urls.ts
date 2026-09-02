@@ -15,6 +15,12 @@ export const ADMIN_URL = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admins.em
 // know where it is; putting it in a footer tells every visitor and every
 // scanner too, and buys nothing.
 export const PARTNER_URL = process.env.NEXT_PUBLIC_PARTNER_URL || "https://partners.empiria.events";
+// The Tours admin console. Distinct from ADMIN_URL above, which is the Events
+// platform's admin — the two are separate applications and conflating them
+// would send staff to the wrong console. Surfaced only inside the account menu
+// of somebody who already has a staff role, never in public chrome.
+export const TOUR_ADMIN_URL =
+  process.env.NEXT_PUBLIC_TOUR_ADMIN_URL || "https://tour-admin.empiria.events";
 export const PROFILE_URL = process.env.NEXT_PUBLIC_PROFILE_URL || "https://profile.empiria.events";
 export const COOKIE_DOMAIN =
   "." + new URL(APEX_URL).hostname.replace(/^(www|home)\./, "");
