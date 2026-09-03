@@ -31,9 +31,12 @@ person you are working with may have a reason to jump the queue, and items 2 and
    seller that is an exposure, not a content gap.
 3. **Settle §5.7 and the installment scope.** Contract conversations, not code,
    and cheaper before signature than after.
-4. **The cheap Revision 1 additions** — add-to-calendar, social sharing, the
-   three missing policy pages. Days between them, and they close visible gaps in
-   modules otherwise reported complete.
+4. **The three missing policy pages.** What is left of the cheap Revision 1
+   additions now that add-to-calendar and social sharing are built. Exhibit A
+   wants seven; four exist, are linked from the footer, render from
+   `static_pages` and have an editor. The other three need a route each, an
+   entry in the admin's `REQUIRED_PAGES`, and a footer link — but **their names
+   are in Exhibit A and nowhere in this repo**, so ask before guessing.
 5. **A cron for `/api/email/tick`**, without which the time-based Part C
    messages never fire even once DNS lands.
 6. **B4 customers, then B5 reporting** (blocked on Empiria entering supplier
@@ -45,6 +48,42 @@ person you are working with may have a reason to jump the queue, and items 2 and
    (§6.1, needs a paid Supabase tier), error monitoring, LCP.
 
 ## Done since this list was last cut
+
+**Add-to-calendar.** `lib/calendar.ts` builds the ics and Google's prefilled URL
+from one exclusive-end rule, so the two destinations agree by construction.
+`GET /booking/[reference]/tour.ics` serves the file Apple Calendar and Outlook
+take — neither has a template URL, so a route was the only way in — under
+`getBookingForViewer`'s authorisation, the booking page's and the receipt's. A
+closed booking 404s.
+
+Entries are **all-day**, and that is a decision rather than a shortcut:
+`departures` carries dates and a bare `start_time`, and **the Tours schema has no
+timezone column anywhere**, so a timed entry means guessing a zone that is wrong
+for every tour not leaving from it. `start_time` goes in the description as text.
+**DTEND is exclusive** per RFC 5545 §3.6.1 — a trip ending 22 Nov emits 23 Nov —
+and seven of the forty-two assertions in `lib/calendar.test.ts` exist for that
+one line, because getting it wrong reads as the traveller's calendar
+misbehaving rather than as ours. No dependency added, for the §5.7 reason the
+mailer has no SDK. `AddToCalendar` is a server component: both destinations are
+links, so it ships no JavaScript.
+
+**Social sharing.** The native share sheet where the browser has one, a copyable
+link and a `mailto:` where it does not — the sheet being the only option that
+reaches the sender's own apps without a button per network and an SDK per
+button. Offered after hydration only, since `navigator.share` cannot be detected
+on the server. The shared address is always canonical, never the one in the bar:
+the tour page takes a `?currency=`, and a shared link should not carry the
+sender's currency to the reader.
+
+**An open redirect closed.** Both `/login` and `/auth/callback` guarded `next`
+with `startsWith('/') && !startsWith('//')`, which reads as airtight and is not:
+browsers fold a backslash into a slash in a special scheme, so `/\evil.com`
+satisfied both halves and `router.push` resolved it to another origin. Tab, CR
+and LF are stripped before parsing and got through identically. The callback
+copy was safe only by accident of prefixing `origin`. Both now share
+`safeNextPath` in `lib/urls.ts`, which parses and compares `url.origin` rather
+than blacklisting characters — the set a URL parser folds into a slash is not a
+list that stays complete. 24 assertions in `lib/urls.test.ts`.
 
 **PDF receipts.** `GET /booking/[reference]/receipt.pdf`, rendered on demand by
 `lib/pdf/` with no dependency added — see `docs/RECEIPTS.md`. The booking page
@@ -110,14 +149,16 @@ form or unpublish until it is filled.
    `next/image`. One sentence of written consent, or narrow the clause.
 2. **The installment scope.** Revision 1 moved four features into Exhibit A at
    no change in fee: per-tour installment plans, add-to-calendar, social
-   sharing, and Admin-managed advertising of Empiria live events. §1.4 is the
-   mechanism for that conversation.
+   sharing, and Admin-managed advertising of Empiria live events. Two of the
+   four — add-to-calendar and social sharing — are now built, which leaves the
+   conversation about the two that are not. §1.4 is the mechanism for it.
 3. **A change order for the partner surface.** Dashboard and onboarding are both
    built; Exhibit A describes neither.
 
 ### Buildable now
 
-- **Add-to-calendar and social sharing** — days between them.
+- **The three missing policy pages** — a route, a `REQUIRED_PAGES` entry and a
+  footer link each. Blocked only on which three Exhibit A names.
 - **B4 customers**, **B5 reporting** (fully specified — §4.6(b) gives the formula).
 - **B3's tail** — refunds, cancellation, amending a booking, the audit-trail view.
 - **Part C's unwired triggers** — 7 of 13 are wired; four need their triggering
@@ -132,7 +173,9 @@ form or unpublish until it is filled.
 
 ## Module count against the revised Exhibit A
 
-**27 of 43.** Part A: 4 done, 4 substantial, **none unstarted** — A7 and A8 are
+**29 of 43.** Add-to-calendar and social sharing, the two Revision 1 additions
+that were code rather than content, are both built. Part A: 4 done, 4
+substantial, **none unstarted** — A7 and A8 are
 both complete, including closure. Part B: 1 done, 3
 substantial, 2 to start. Part C: machinery done, nothing sending. Part D:
 mechanism done, receipts done, wording left — every block renders on the
