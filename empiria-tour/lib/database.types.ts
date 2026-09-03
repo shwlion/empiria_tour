@@ -1944,6 +1944,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      close_own_account: { Args: { p_user: string }; Returns: undefined }
       confirm_hold_seats: { Args: { p_booking: string }; Returns: boolean }
       create_booking: {
         Args: { p_payload: Json }

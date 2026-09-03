@@ -84,7 +84,10 @@ export default function MobileNav({
             )}
 
             <div className="my-2 border-t border-white/10" />
-            <Link href="/bookings" onClick={() => setOpen(false)} className={itemClass}>
+            {/* A7. This pointed at /bookings, which never existed — the one
+                place the "no link that 404s" rule had already been broken.
+                Anonymous visitors are sent to sign in and land back here. */}
+            <Link href="/account/bookings" onClick={() => setOpen(false)} className={itemClass}>
               My bookings
             </Link>
           </div>

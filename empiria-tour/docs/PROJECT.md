@@ -1,6 +1,6 @@
 # Empiria Tours — where the build stands
 
-Last updated 2 September 2026, against **Revision 1** of the Development
+Last updated 3 September 2026, against **Revision 1** of the Development
 Agreement. Delivery pencilled for end of September (§1.5 makes it non-binding
 and it extends for change orders and client delay).
 
@@ -31,22 +31,50 @@ person you are working with may have a reason to jump the queue, and items 2 and
    seller that is an exposure, not a content gap.
 3. **Settle §5.7 and the installment scope.** Contract conversations, not code,
    and cheaper before signature than after.
-4. **PDF receipts.** A6, A7, Part C and Part D all depend on this, so it comes
-   before A7 rather than after.
-5. **A7 and A8** — the traveller's own account. The last unbuilt public screens
-   and the most conspicuous absence to anyone looking at the site.
-6. **The cheap Revision 1 additions** — add-to-calendar, social sharing, the
+4. **The cheap Revision 1 additions** — add-to-calendar, social sharing, the
    three missing policy pages. Days between them, and they close visible gaps in
    modules otherwise reported complete.
-7. **A cron for `/api/email/tick`**, without which the time-based Part C
+5. **A cron for `/api/email/tick`**, without which the time-based Part C
    messages never fire even once DNS lands.
-8. **B4 customers, then B5 reporting** (blocked on Empiria entering supplier
+6. **B4 customers, then B5 reporting** (blocked on Empiria entering supplier
    costs), then B3's tail — refunds, cancellation, amending a booking.
-9. **Installments.** The largest single item, and it changes the payment
+7. **Installments.** The largest single item, and it changes the payment
    architecture rather than extending it. **Do not start before the commercial
    question in item 3 is answered** — it may not be paid work.
-10. **The Part F sweep** — sitemap, robots, real bot protection, daily backups
-    (§6.1, needs a paid Supabase tier), error monitoring, LCP.
+8. **The Part F sweep** — sitemap, robots, real bot protection, daily backups
+   (§6.1, needs a paid Supabase tier), error monitoring, LCP.
+
+## Done since this list was last cut
+
+**PDF receipts.** `GET /booking/[reference]/receipt.pdf`, rendered on demand by
+`lib/pdf/` with no dependency added — see `docs/RECEIPTS.md`. The booking page
+and the account list both link it once a payment exists. What is left of it is
+the Part C attachment, which is blocked on Empiria: it cannot be decided which
+of the sixteen emails carries a receipt while none of them has a body.
+
+**A7 — the traveller's own bookings.** `/account/bookings`, split into upcoming
+and past, each row linking the booking and its receipt. Keyed on the auth UUID
+and never on `lead_email`, which is typed by whoever made the booking; a booking
+made while signed out is therefore reachable by reference and session cookie
+only, and the empty state says so. `MobileNav` had linked "My bookings" to
+`/bookings`, which never existed — the one place the no-404-links rule had
+already been broken.
+
+**A8 — the account itself.** `/account` edits name, phone, address and the
+marketing opt-in through the `update own profile` policy rather than the service
+role, so the policy's with-check pins `role` and escalation is impossible there.
+Email is read-only: the address of record lives in `auth.users` and changing it
+is an authentication event, not a profile edit. Closure runs through
+`close_own_account` (migration **0010, applied 3 Sep**), proved against the live
+database with a fifteen-assertion `do $$ … $$` harness that rolled itself back:
+it anonymises the profile, retains the booking, traveller and payment rows, is
+idempotent, refuses a null or unknown account, and refuses to close the last
+active administrator — leaving no trace when it refuses. `getUser` treats a
+closed account as signed out.
+
+**Sign-in now returns you where you were.** `/login` and `/auth/callback` both
+take a `next`, and both accept only same-origin relative paths. A7 and A8 were
+the first screens that needed it.
 
 ## Live database readout (2 Sep)
 
@@ -89,8 +117,6 @@ form or unpublish until it is filled.
 
 ### Buildable now
 
-- **A7 / A8** — the traveller's own account. Last unbuilt public screens.
-- **PDF receipts** — A6, A7, Part C and Part D all depend on this. Do it before A7.
 - **Add-to-calendar and social sharing** — days between them.
 - **B4 customers**, **B5 reporting** (fully specified — §4.6(b) gives the formula).
 - **B3's tail** — refunds, cancellation, amending a booking, the audit-trail view.
@@ -106,10 +132,12 @@ form or unpublish until it is filled.
 
 ## Module count against the revised Exhibit A
 
-**24 of 43.** Part A: 2 done, 4 substantial, 2 to start. Part B: 1 done, 3
+**27 of 43.** Part A: 4 done, 4 substantial, **none unstarted** — A7 and A8 are
+both complete, including closure. Part B: 1 done, 3
 substantial, 2 to start. Part C: machinery done, nothing sending. Part D:
-mechanism done, receipts and wording left. Part E: 2 entities short
-(`ad_placements`, installment schedule). Part F: 3 done, 5 open.
+mechanism done, receipts done, wording left — every block renders on the
+receipt, and every one of them is empty until Empiria writes it. Part E: 2
+entities short (`ad_placements`, installment schedule). Part F: 3 done, 5 open.
 
 ## Things that will bite you
 
@@ -132,4 +160,5 @@ mechanism done, receipts and wording left. Part E: 2 entities short
 
 - `docs/STRIPE.md` — the live-run runbook.
 - `docs/NOTIFICATIONS.md` — Part C's outbox, renderer and clock.
+- `docs/RECEIPTS.md` — the PDF, and why nothing is stored.
 - `CLAUDE.md` in each of the three repos — architecture rules for that app.

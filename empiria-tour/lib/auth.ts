@@ -34,15 +34,42 @@ export async function getUser(): Promise<SessionUser | null> {
 
   const { data: profile } = await supabase
     .from('users')
-    .select('role')
+    .select('role, status')
     .eq('id', user.id)
     .maybeSingle();
+
+  // A closed account (A8) reads as signed out.
+  //
+  // Closure anonymises the profile but cannot remove the `auth.users` row —
+  // that row is what the booking history hangs off. So the session survives
+  // closure, and without this check a traveller who closed their account would
+  // still be signed in to an empty one. The status column is already being read
+  // for the role, so this costs nothing.
+  if (profile?.status === 'closed') return null;
 
   return {
     id: user.id,
     email: user.email ?? null,
     role: (profile?.role as Role) ?? null,
   };
+}
+
+/**
+ * Gate a page on being signed in at all, whatever the role.
+ *
+ * A7 and A8 are every traveller's own screens, so `requireRole('traveller')`
+ * would be wrong twice over: it would turn an admin or a partner away from
+ * their own bookings, and it would send them to /unauthorized — which says
+ * "your account does not have access", a sentence that is simply untrue there.
+ *
+ * `next` comes back through /login and /auth/callback, both of which accept
+ * only same-origin relative paths, so somebody signing in to reach their
+ * bookings arrives at their bookings rather than at the home page.
+ */
+export async function requireUser(next?: string): Promise<SessionUser> {
+  const user = await getUser();
+  if (!user) redirect(next ? `/login?next=${encodeURIComponent(next)}` : '/login');
+  return user;
 }
 
 /**

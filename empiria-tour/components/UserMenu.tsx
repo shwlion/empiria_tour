@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronDown, LogOut, ShieldCheck, Compass } from 'lucide-react';
+import { ChevronDown, LogOut, ShieldCheck, Compass, Luggage, UserRound } from 'lucide-react';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { createClient } from '@/lib/supabase/client';
 import { PARTNER_URL, TOUR_ADMIN_URL } from '@/lib/urls';
@@ -140,11 +140,15 @@ export default function UserMenu() {
             {account.email}
           </p>
 
-          {/*
-            A7 "My bookings" belongs here and is deliberately absent: the route
-            does not exist yet, and a menu item that 404s is worse than a menu
-            item that is missing.
-          */}
+          <a href="/account/bookings" role="menuitem" className={itemClass}>
+            <Luggage size={15} aria-hidden="true" className="text-stone" />
+            My bookings
+          </a>
+
+          <a href="/account" role="menuitem" className={itemClass}>
+            <UserRound size={15} aria-hidden="true" className="text-stone" />
+            Account
+          </a>
 
           {isStaff && (
             <a href={`${TOUR_ADMIN_URL}/dashboard`} role="menuitem" className={itemClass}>

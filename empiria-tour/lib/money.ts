@@ -33,7 +33,16 @@ export function formatDepartureDate(iso: string | null | undefined, locale = 'en
   });
 }
 
-/** "4–11 May 2027", collapsing the repeated month and year where possible. */
+/**
+ * A departure's dates, collapsing whatever the two ends share:
+ * "May 1 – 8, 2027", "May 28 – Jun 4, 2027", "Dec 28, 2027 – Jan 4, 2028".
+ *
+ * `Intl.formatRange` does the collapsing, and it has to: which parts may be
+ * elided, and in what order, is a property of the locale. This previously
+ * hand-assembled the range by taking the day off the start and the full date
+ * off the end, which reads correctly only in a day-first locale — in `en-CA`,
+ * which is the default here, it produced "1–May 8, 2027".
+ */
 export function formatDateRange(
   startIso: string | null | undefined,
   endIso: string | null | undefined,
@@ -42,26 +51,16 @@ export function formatDateRange(
   if (!startIso) return '';
   if (!endIso) return formatDepartureDate(startIso, locale);
 
+  // Plain calendar dates, as everywhere else in this file: a departure is a day,
+  // not an instant, and parsing it as one would shift it by the viewer's offset.
   const parse = (s: string) => {
     const [y, m, d] = s.slice(0, 10).split('-').map(Number);
     return new Date(Date.UTC(y, m - 1, d));
   };
-  const a = parse(startIso);
-  const b = parse(endIso);
-  const opts: Intl.DateTimeFormatOptions = { timeZone: 'UTC' };
 
-  const sameYear = a.getUTCFullYear() === b.getUTCFullYear();
-  const sameMonth = sameYear && a.getUTCMonth() === b.getUTCMonth();
-
-  if (sameMonth) {
-    return `${a.toLocaleDateString(locale, { ...opts, day: 'numeric' })}–${b.toLocaleDateString(
-      locale, { ...opts, day: 'numeric', month: 'short', year: 'numeric' })}`;
-  }
-  if (sameYear) {
-    return `${a.toLocaleDateString(locale, { ...opts, day: 'numeric', month: 'short' })} – ${b.toLocaleDateString(
-      locale, { ...opts, day: 'numeric', month: 'short', year: 'numeric' })}`;
-  }
-  return `${formatDepartureDate(startIso, locale)} – ${formatDepartureDate(endIso, locale)}`;
+  return new Intl.DateTimeFormat(locale, {
+    day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC',
+  }).formatRange(parse(startIso), parse(endIso));
 }
 
 /** "3 left" / "Sold out" / null when there is nothing worth saying. */

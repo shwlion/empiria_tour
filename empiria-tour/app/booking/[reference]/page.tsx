@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
-import { CircleCheck } from 'lucide-react';
+import { CircleCheck, Download } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { getBookingForViewer } from '@/lib/booking';
@@ -190,6 +190,20 @@ export default async function BookingPage({
           justReturned={paid === '1'}
           cancelled={cancelled === '1'}
         />
+
+        {/* Only once money has actually arrived. A "receipt" for a booking
+            nothing has been paid against is a document that misnames itself,
+            and the same rule that took "My bookings" out of the footer applies
+            here: no link is better than one that disappoints. */}
+        {booking.totals.amountPaidCents > 0 && (
+          <a
+            href={`/booking/${booking.reference}/receipt.pdf?download=1`}
+            className="mt-8 inline-flex items-center gap-2 rounded-field border border-line bg-bone px-4 py-2.5 text-[14px] font-medium text-ink transition-colors hover:border-flame hover:text-flame"
+          >
+            <Download className="h-4 w-4" aria-hidden="true" />
+            Download receipt (PDF)
+          </a>
+        )}
 
         <p className="mt-8 text-[13px] leading-relaxed text-stone">
           Keep this reference. Questions about the booking? Reply to the confirmation email or get in

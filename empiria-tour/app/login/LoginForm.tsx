@@ -17,6 +17,25 @@ const inputClass =
 
 const labelClass = 'mb-1 block font-mono text-[10px] uppercase tracking-label text-stone';
 
+/**
+ * Where to land after signing in.
+ *
+ * Read from `window.location` at submit time rather than with
+ * `useSearchParams`, which would opt this page out of static rendering — it is
+ * `revalidate = 300` and there is no reason for a sign-in form to be dynamic.
+ * Nothing needs the value until somebody presses a button, by which point the
+ * browser certainly has it.
+ *
+ * Only same-origin relative paths are honoured. `/auth/callback` applies the
+ * same rule server-side; this is the near half of it, and neither is trusted to
+ * be the only one.
+ */
+function nextPath(): string {
+  if (typeof window === 'undefined') return '/';
+  const raw = new URLSearchParams(window.location.search).get('next');
+  return raw && raw.startsWith('/') && !raw.startsWith('//') ? raw : '/';
+}
+
 export default function LoginForm() {
   const router = useRouter();
   const configured = isSupabaseConfigured();
@@ -33,12 +52,14 @@ export default function LoginForm() {
     setNotice(null);
     setLoading(true);
     const supabase = createClient();
+    const next = nextPath();
+    const callback = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
 
     if (mode === 'signup') {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+        options: { emailRedirectTo: callback },
       });
       setLoading(false);
       if (error) {
@@ -51,7 +72,7 @@ export default function LoginForm() {
         setMode('signin');
         return;
       }
-      router.push('/');
+      router.push(next);
       router.refresh();
       return;
     }
@@ -62,7 +83,7 @@ export default function LoginForm() {
       setError(error.message);
       return;
     }
-    router.push('/');
+    router.push(next);
     router.refresh();
   }
 
@@ -71,7 +92,9 @@ export default function LoginForm() {
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath())}`,
+      },
     });
     if (error) setError(error.message);
   }
