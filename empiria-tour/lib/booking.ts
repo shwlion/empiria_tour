@@ -622,7 +622,7 @@ export type BookingSummary = {
   lines: { kind: string; label: string; quantity: number; amountCents: number }[];
   travellers: { position: number; travellerType: string; legalName: string; isLead: boolean }[];
   acknowledgements: { label: string; acceptedAt: string }[];
-  package: { title: string; slug: string; heroImage: string | null };
+  package: { title: string; slug: string; heroImage: string | null; meetingPoint: string | null };
   departure: { startsOn: string; endsOn: string | null; startTime: string | null };
   /** When the seats stop being held. Null once payment resolves either way. */
   holdExpiresAt: string | null;
@@ -648,7 +648,7 @@ export async function getBookingForViewer(
   const { data: booking } = await db
     .from('bookings')
     .select(
-      'id, reference, status, currency, created_at, lead_name, lead_email, lead_phone, adults, children, infants, subtotal_cents, discount_cents, tax_cents, fees_cents, total_cents, deposit_due_cents, amount_paid_cents, balance_cents, balance_due_on, user_id, packages ( title, slug, hero_image ), departures ( starts_on, ends_on, start_time )'
+      'id, reference, status, currency, created_at, lead_name, lead_email, lead_phone, adults, children, infants, subtotal_cents, discount_cents, tax_cents, fees_cents, total_cents, deposit_due_cents, amount_paid_cents, balance_cents, balance_due_on, user_id, packages ( title, slug, hero_image, meeting_point ), departures ( starts_on, ends_on, start_time )'
     )
     .eq('reference', reference.toUpperCase())
     .maybeSingle();
@@ -686,7 +686,7 @@ export async function getBookingForViewer(
   ]);
 
   const live = (holds ?? []).find((h) => h.released_at == null);
-  const pkg = (booking as { packages?: { title: string; slug: string; hero_image: string | null } | null }).packages;
+  const pkg = (booking as { packages?: { title: string; slug: string; hero_image: string | null; meeting_point: string | null } | null }).packages;
   const dep = (booking as { departures?: { starts_on: string; ends_on: string | null; start_time: string | null } | null }).departures;
 
   return {
@@ -724,6 +724,7 @@ export async function getBookingForViewer(
       title: pkg?.title ?? 'Your trip',
       slug: pkg?.slug ?? '',
       heroImage: pkg?.hero_image ?? null,
+      meetingPoint: pkg?.meeting_point ?? null,
     },
     departure: {
       startsOn: dep?.starts_on ?? '',

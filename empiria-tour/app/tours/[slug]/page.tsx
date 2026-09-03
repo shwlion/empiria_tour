@@ -7,6 +7,7 @@ import { Check, Clock, MapPin, Minus, Users, AlertTriangle } from 'lucide-react'
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import PricePanel from '@/components/tours/PricePanel';
+import ShareTour from '@/components/tours/ShareTour';
 import { absoluteUrl } from '@/lib/seo';
 import { formatPrice } from '@/lib/money';
 import { getDefaultCurrency, getDisclosures, getPackageBySlug, getPlatformSettings } from '@/lib/catalogue';
@@ -124,6 +125,15 @@ export default async function TourDetail({ params, searchParams }: Props) {
                 {pkg.summary && (
                     <p className="mt-4 max-w-2xl text-[16px] leading-relaxed text-stone">{pkg.summary}</p>
                 )}
+
+                {/* The canonical public address, never the one in the bar: this
+                    page is reachable with a `?currency=` on it, and a shared
+                    link should not carry the sender's currency to the reader. */}
+                <ShareTour
+                    url={absoluteUrl(`/tours/${pkg.slug}`)}
+                    title={pkg.title}
+                    summary={pkg.summary}
+                />
 
                 <div className="relative mt-7 aspect-[21/9] w-full overflow-hidden rounded-card">
                     {pkg.heroImage ? (

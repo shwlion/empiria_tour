@@ -10,6 +10,8 @@ import { getBookingForViewer } from '@/lib/booking';
 import { getUser } from '@/lib/auth';
 import { isStripeConfigured, isTestMode } from '@/lib/stripe';
 import PaymentPanel from '@/components/booking/PaymentPanel';
+import AddToCalendar from '@/components/booking/AddToCalendar';
+import { isClosed } from '@/lib/bookingStatus';
 import { formatPrice, formatDateRange } from '@/lib/money';
 
 /**
@@ -190,6 +192,22 @@ export default async function BookingPage({
           justReturned={paid === '1'}
           cancelled={cancelled === '1'}
         />
+
+        {/* The same rule the receipt link follows, for the same reason: a
+            cancelled or refunded trip does not belong in somebody's diary, and
+            `isClosed` is already the vocabulary for "over, one way or another". */}
+        {!isClosed(booking.status) && (
+          <AddToCalendar
+            reference={booking.reference}
+            packageTitle={booking.package.title}
+            packageSlug={booking.package.slug}
+            meetingPoint={booking.package.meetingPoint}
+            startsOn={booking.departure.startsOn}
+            endsOn={booking.departure.endsOn}
+            startTime={booking.departure.startTime}
+            createdAt={booking.createdAt}
+          />
+        )}
 
         {/* Only once money has actually arrived. A "receipt" for a booking
             nothing has been paid against is a document that misnames itself,
