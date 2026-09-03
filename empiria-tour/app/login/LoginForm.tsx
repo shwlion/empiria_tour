@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { createClient } from '@/lib/supabase/client';
+import { safeNextPath } from '@/lib/urls';
 
 type Mode = 'signin' | 'signup';
 
@@ -33,7 +34,7 @@ const labelClass = 'mb-1 block font-mono text-[10px] uppercase tracking-label te
 function nextPath(): string {
   if (typeof window === 'undefined') return '/';
   const raw = new URLSearchParams(window.location.search).get('next');
-  return raw && raw.startsWith('/') && !raw.startsWith('//') ? raw : '/';
+  return safeNextPath(raw, window.location.origin);
 }
 
 export default function LoginForm() {

@@ -24,3 +24,39 @@ export const TOUR_ADMIN_URL =
 export const PROFILE_URL = process.env.NEXT_PUBLIC_PROFILE_URL || "https://profile.empiria.events";
 export const COOKIE_DOMAIN =
   "." + new URL(APEX_URL).hostname.replace(/^(www|home)\./, "");
+
+/**
+ * Reduce a `next` parameter to a path this site is willing to send somebody to.
+ *
+ * `next` arrives in a query string, so it arrives from whoever wrote the link.
+ * Returns a same-origin path, or "/" when the value is missing, unparseable, or
+ * points anywhere else.
+ *
+ * The guard this replaced was `startsWith('/') && !startsWith('//')`, which
+ * reads as airtight and is not. Browsers normalise a backslash to a slash in a
+ * special scheme, so `/\evil.com` satisfied both halves and then resolved to
+ * https://evil.com/. Tab, CR and LF are stripped before parsing and get through
+ * the same way. That is why this parses instead of blacklisting: the set of
+ * characters a URL parser folds into a slash is not a list that stays complete,
+ * and the next one added to it would reopen this silently.
+ *
+ * Comparing `url.origin` rather than the hostname is deliberate — it pins the
+ * scheme and port too, so an http:// downgrade of our own host is refused along
+ * with `https://tour.empiria.events@evil.com`, where the real host is the one
+ * after the @.
+ *
+ * Both call sites use this: `/login` before router.push, and `/auth/callback`
+ * before redirecting. Neither is trusted to be the only one.
+ */
+export function safeNextPath(raw: string | null | undefined, origin: string): string {
+  if (!raw) return "/";
+  try {
+    const base = new URL(origin);
+    const target = new URL(raw, base);
+    if (target.origin !== base.origin) return "/";
+    return `${target.pathname}${target.search}${target.hash}`;
+  } catch {
+    // An origin we cannot parse, or a value no relative resolution accepts.
+    return "/";
+  }
+}
