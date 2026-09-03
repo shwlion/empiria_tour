@@ -17,6 +17,37 @@ It needs a `sk_test_` Stripe key and about an hour. `docs/STRIPE.md` is the
 runbook. **Do not use a live key** — §3.6(c) makes a single live booking
 constitute Acceptance.
 
+## Next, in order
+
+**Ask before starting.** This is a considered ranking, not an instruction — the
+person you are working with may have a reason to jump the queue, and items 2 and
+3 are theirs to do rather than yours. Confirm which one is wanted, then go.
+
+1. **Take one booking, end to end.** A `sk_test_` key, the storefront, the
+   webhook, both consoles. It is the only untested thing in a large amount of
+   built work, and it converts proof-by-harness into proof. `docs/STRIPE.md`.
+2. **Fill in who the seller is, or unpublish.** Five packages are bookable and
+   the site names no company and no travel registration. For a TICO-regulated
+   seller that is an exposure, not a content gap.
+3. **Settle §5.7 and the installment scope.** Contract conversations, not code,
+   and cheaper before signature than after.
+4. **PDF receipts.** A6, A7, Part C and Part D all depend on this, so it comes
+   before A7 rather than after.
+5. **A7 and A8** — the traveller's own account. The last unbuilt public screens
+   and the most conspicuous absence to anyone looking at the site.
+6. **The cheap Revision 1 additions** — add-to-calendar, social sharing, the
+   three missing policy pages. Days between them, and they close visible gaps in
+   modules otherwise reported complete.
+7. **A cron for `/api/email/tick`**, without which the time-based Part C
+   messages never fire even once DNS lands.
+8. **B4 customers, then B5 reporting** (blocked on Empiria entering supplier
+   costs), then B3's tail — refunds, cancellation, amending a booking.
+9. **Installments.** The largest single item, and it changes the payment
+   architecture rather than extending it. **Do not start before the commercial
+   question in item 3 is answered** — it may not be paid work.
+10. **The Part F sweep** — sitemap, robots, real bot protection, daily backups
+    (§6.1, needs a paid Supabase tier), error monitoring, LCP.
+
 ## Live database readout (2 Sep)
 
 | Signal | Now | Means |
