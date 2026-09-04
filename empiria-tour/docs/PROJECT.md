@@ -1,6 +1,6 @@
 # Empiria Tours — where the build stands
 
-Last updated 3 September 2026, against **Revision 1** of the Development
+Last updated 4 September 2026, against **Revision 1** of the Development
 Agreement. Delivery pencilled for end of September (§1.5 makes it non-binding
 and it extends for change orders and client delay).
 
@@ -48,6 +48,30 @@ person you are working with may have a reason to jump the queue, and items 2 and
    (§6.1, needs a paid Supabase tier), error monitoring, LCP.
 
 ## Done since this list was last cut
+
+**The RPCs anon could call.** Migration **0011, applied 4 Sep.** Ten SECURITY
+DEFINER functions were executable by `anon` — which on Supabase means by
+anybody, since the anon key ships in the browser bundle and PostgREST exposes
+every `public` function at /rest/v1/rpc/<name>. `set_user_role` was the serious
+one: its only actor check is `p_user = p_actor`, so it never asks whether the
+caller is staff — authorisation lives in the console, which is sound only while
+the console is the sole caller. Sign up, call the endpoint with your own id and
+'admin', and you were an administrator. `enqueue_email` was a spam relay from
+Empiria's verified domain the moment DNS lands.
+
+Nothing legitimate lost access: every caller of all ten, across all three repos,
+is a server action holding the service role. Revoked from `public` as well as
+the two roles, because Postgres grants EXECUTE to PUBLIC by default and revoking
+only the roles leaves that intact — the rule CLAUDE.md already states and
+eighteen other functions already followed.
+
+Also in 0011: the `email_messages_own_read` policy no longer re-evaluates
+`auth.uid()` per row, and fourteen foreign keys got the covering index they
+lacked. **The ~20 "unused index" notices were deliberately left alone** — there
+are zero bookings, so every index on `bookings` and `payments` is unused by
+definition, and dropping them would be acting on a statement about traffic
+rather than about the index. After 0011 the linter reports no WARN-level finding
+of either kind.
 
 **Add-to-calendar.** `lib/calendar.ts` builds the ics and Google's prefilled URL
 from one exclusive-end rule, so the two destinations agree by construction.
