@@ -206,3 +206,33 @@ export function buildBreadcrumbJsonLd(
     })),
   };
 }
+
+/**
+ * Build a schema.org BlogPosting for a published post.
+ *
+ * Only fields we actually hold are emitted — an empty `image` or a made-up
+ * `dateModified` is worse than their absence, because a search engine will
+ * believe it.
+ */
+export function buildBlogPostingJsonLd(input: {
+  title: string;
+  slug: string;
+  excerpt: string;
+  authorName: string;
+  publishedAt: string | null;
+  heroImage: string | null;
+}): Record<string, unknown> {
+  const jsonLd: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: input.title,
+    description: input.excerpt,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': absoluteUrl(`/blog/${input.slug}`) },
+    url: absoluteUrl(`/blog/${input.slug}`),
+    author: { '@type': 'Person', name: input.authorName },
+    publisher: { '@type': 'Organization', name: 'Empiria Tours', url: absoluteUrl('/') },
+  };
+  if (input.publishedAt) jsonLd.datePublished = input.publishedAt;
+  if (input.heroImage) jsonLd.image = [absoluteUrl(input.heroImage)];
+  return jsonLd;
+}

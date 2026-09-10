@@ -1,8 +1,16 @@
 # The blog
 
-**Status: design, approved 5 September 2026. Nothing below is built yet.**
-This file becomes the subsystem document once it is; until then, treat every
-statement as intent rather than as a description of the code.
+**Status: built, 9 September 2026.** Design approved 5 September 2026 and
+implemented against it; this is now the subsystem document. Where the code and
+this file disagree the code is right — say so here rather than leaving it.
+
+**One change from the design:** the schema is migration **0013**, not 0012.
+`0012_showcase_cards.sql` took that number in between. Two smaller additions the
+design did not name: `blog_posts_unpublished_by_idx`, because 0011's rule is
+that *every* foreign key is covered; and a `freeze_blog_slug` trigger, because
+"frozen the moment it first publishes" needed something to enforce it, and a
+rule that spans two consoles belongs in the database for the same reason
+`publish_blog_post` does.
 
 **Contract: outside Exhibit A.** Like the partner dashboard and partner
 onboarding, this is a module the agreement does not describe. §1.4 is the
@@ -117,7 +125,7 @@ a suggestion.
 
 ---
 
-## Schema — migration 0012
+## Schema — migration 0013
 
 ```sql
 create table public.blog_posts (
@@ -270,7 +278,7 @@ on top of it is wrong too, and it is the one part with an attacker.
 
 1. **`lib/blogMarkdown.ts` and its tests.** Pure, no database, no UI. Provable
    before anything can call it.
-2. **Migration 0012** — table, indexes, RLS, `publish_blog_post`, the storage
+2. **Migration 0013** — table, indexes, RLS, `publish_blog_post`, the storage
    bucket, and the harness. Then regenerate `database.types.ts` into all three
    repos.
 3. **Upload** — `lib/blogUpload.ts`, magic-byte validation and its tests.
