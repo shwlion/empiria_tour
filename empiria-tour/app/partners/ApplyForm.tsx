@@ -1,7 +1,23 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 import { applyAction, type ApplyResult } from './actions';
+import ApplyStepper, { type StepDef } from '@/components/partners/ApplyStepper';
+
+/**
+ * Which step each server-side field error belongs to, so a rejection lands
+ * the applicant on the panel holding the problem rather than on whichever
+ * one they happened to be looking at.
+ */
+const STEPS: StepDef[] = [
+  { id: 'business', title: 'Your business' },
+  { id: 'contact', title: 'Who we would be speaking to' },
+];
+const STEP_OF_FIELD: Record<string, number> = {
+  company_name: 1, country: 1, website: 1,
+  operating_regions: 1, tour_types: 1, departures_per_year: 1,
+  contact_name: 2, phone: 2, email: 2, message: 2,
+};
 
 const inputClass =
   'w-full rounded-lg border border-line bg-paper px-3 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-stone/50 focus:border-flame';
@@ -25,6 +41,25 @@ function Field({
 export default function ApplyForm() {
   const [state, formAction, pending] = useActionState<ApplyResult | null, FormData>(applyAction, null);
 
+  /*
+    Controlled, and that is load-bearing rather than a style choice.
+
+    `<form action={fn}>` puts react-dom on the host-transition path, which
+    calls requestFormReset once the action settles — so every field was
+    cleared on a REJECTED submission too, leaving the applicant staring at
+    "A few things still need filling in" over an empty form. React re-renders
+    a controlled input from state immediately after that reset, so the typed
+    values survive. Server-rendered `value` attributes keep the no-JS path
+    working unchanged.
+  */
+  const [values, setValues] = useState<Record<string, string>>({});
+  const bind = (name: string) => ({
+    value: values[name] ?? '',
+    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      setValues((v) => ({ ...v, [name]: e.target.value })),
+  });
+
+
   if (state?.ok) {
     return (
       <div className="rounded-card border border-line bg-bone p-8">
@@ -43,9 +78,12 @@ export default function ApplyForm() {
   }
 
   const err = state && !state.ok ? state.fields ?? {} : {};
+  const errored = Object.keys(err).map((f) => STEP_OF_FIELD[f]).filter(Boolean);
+  const jumpToStep = errored.length ? Math.min(...errored) : null;
+
 
   return (
-    <form action={formAction} className="flex flex-col gap-6">
+    <form action={formAction} noValidate className="flex flex-col gap-6">
       {state && !state.ok && (
         <div role="alert" className="rounded-field border border-flame/40 bg-flame/5 p-3.5 text-[14px] text-ink">
           {state.message}
@@ -61,54 +99,61 @@ export default function ApplyForm() {
         <input id="company_website_url" name="company_website_url" type="text" tabIndex={-1} autoComplete="off" />
       </div>
 
+      <ApplyStepper
+        steps={STEPS}
+        submitLabel="Send application"
+        pending={pending}
+        jumpToStep={jumpToStep}
+        errorSignal={state}
+      >
       <fieldset className="flex flex-col gap-5">
-        <legend className="mb-1 font-mono text-[10px] uppercase tracking-label text-flame">
+        <legend className="apply-stepper__nojs mb-1 font-mono text-[10px] uppercase tracking-label text-flame">
           Your business
         </legend>
 
         <Field name="company_name" label="Company name" error={err.company_name}>
-          <input id="company_name" name="company_name" required className={inputClass}
+          <input id="company_name" name="company_name" {...bind('company_name')} required className={inputClass}
                  placeholder="Kyoto Heritage Tours K.K." />
         </Field>
 
         <div className="grid gap-5 sm:grid-cols-2">
           <Field name="country" label="Where you are based">
-            <input id="country" name="country" className={inputClass} placeholder="Japan" />
+            <input id="country" name="country" {...bind('country')} className={inputClass} placeholder="Japan" />
           </Field>
           <Field name="website" label="Website" hint="Optional, but it helps us place you.">
-            <input id="website" name="website" type="url" className={inputClass}
+            <input id="website" name="website" {...bind('website')} type="url" className={inputClass}
                    placeholder="https://" />
           </Field>
         </div>
 
         <Field name="operating_regions" label="Where you operate">
-          <input id="operating_regions" name="operating_regions" className={inputClass}
+          <input id="operating_regions" name="operating_regions" {...bind('operating_regions')} className={inputClass}
                  placeholder="Kansai, Chūbu, and day trips from Tokyo" />
         </Field>
 
         <Field name="tour_types" label="What kind of tours you run">
-          <input id="tour_types" name="tour_types" className={inputClass}
+          <input id="tour_types" name="tour_types" {...bind('tour_types')} className={inputClass}
                  placeholder="Small-group cultural and culinary, 3–8 days" />
         </Field>
 
         <Field name="departures_per_year" label="Departures a year"
                hint="A rough number is fine.">
-          <input id="departures_per_year" name="departures_per_year" type="number" min={0}
+          <input id="departures_per_year" name="departures_per_year" {...bind('departures_per_year')} type="number" min={0}
                  className={inputClass} placeholder="40" />
         </Field>
       </fieldset>
 
       <fieldset className="flex flex-col gap-5">
-        <legend className="mb-1 font-mono text-[10px] uppercase tracking-label text-flame">
+        <legend className="apply-stepper__nojs mb-1 font-mono text-[10px] uppercase tracking-label text-flame">
           Who we would be speaking to
         </legend>
 
         <div className="grid gap-5 sm:grid-cols-2">
           <Field name="contact_name" label="Your name" error={err.contact_name}>
-            <input id="contact_name" name="contact_name" required className={inputClass} />
+            <input id="contact_name" name="contact_name" {...bind('contact_name')} required className={inputClass} />
           </Field>
           <Field name="phone" label="Phone">
-            <input id="phone" name="phone" type="tel" className={inputClass} />
+            <input id="phone" name="phone" {...bind('phone')} type="tel" className={inputClass} />
           </Field>
         </div>
 
@@ -118,27 +163,16 @@ export default function ApplyForm() {
           error={err.email}
           hint="Use a business address you can sign in with — this becomes your login if we go ahead."
         >
-          <input id="email" name="email" type="email" required className={inputClass} />
+          <input id="email" name="email" {...bind('email')} type="email" required className={inputClass} />
         </Field>
 
         <Field name="message" label="Anything else we should know">
-          <textarea id="message" name="message" rows={4} className={inputClass}
+          <textarea id="message" name="message" {...bind('message')} rows={4} className={inputClass}
                     placeholder="Licences you hold, insurance, who you already work with — whatever helps us understand the operation." />
         </Field>
       </fieldset>
 
-      <div className="flex flex-wrap items-center gap-4">
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded-field bg-flame px-6 py-3 font-mono text-[11px] font-bold uppercase tracking-label text-white transition-colors hover:bg-ember disabled:opacity-60"
-        >
-          {pending ? 'Sending…' : 'Send application'}
-        </button>
-        <p className="text-[12px] leading-relaxed text-stone">
-          We use these details only to assess the application.
-        </p>
-      </div>
+      </ApplyStepper>
     </form>
   );
 }

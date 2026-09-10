@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import ApplyForm from './ApplyForm';
+import Reveal from '@/components/home/Reveal';
 import { getPlatformSettings } from '@/lib/catalogue';
 import { PARTNER_URL } from '@/lib/urls';
 
@@ -27,6 +28,35 @@ export default async function PartnersPage() {
         handle the selling — the site, the payment, the receipts, the traveller correspondence — and
         you keep control of your itineraries, your dates and your pricing.
       </p>
+
+      {/*
+        A claw rake, purely decorative — hence aria-hidden and focusable=false.
+        It fills the gutter beside the ragged right edge of the intro rather
+        than sitting centred under it.
+
+        Stroked, not filled: the draw-in below animates stroke-dashoffset, and
+        a stroke cannot taper along its length, so the taper is approximated
+        by giving each slash its own width. Round caps do the rest.
+      */}
+      <div className="mt-8 flex justify-end" data-draw>
+        <svg
+          className="claw"
+          viewBox="0 0 148 104"
+          width="148"
+          height="104"
+          aria-hidden="true"
+          focusable="false"
+        >
+          {/*
+            Raked right and curved, so it reads as one swipe rather than three
+            tally marks: each slash leans ~35 degrees off vertical and bows the
+            same way, with the middle one longest and heaviest.
+          */}
+          <path className="claw__slash" strokeWidth="3" pathLength={1} d="M6 10C26 30 48 54 60 90" />
+          <path className="claw__slash" strokeWidth="4.5" pathLength={1} d="M42 2C64 24 88 52 100 98" />
+          <path className="claw__slash" strokeWidth="3" pathLength={1} d="M80 10C100 32 120 56 130 88" />
+        </svg>
+      </div>
 
       <div className="mt-10 grid gap-6 border-y border-line py-8 sm:grid-cols-3">
         <div>
@@ -103,6 +133,7 @@ export default async function PartnersPage() {
           registration number {settings.registration_number}.
         </p>
       )}
+      <Reveal />
     </main>
   );
 }

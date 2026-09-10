@@ -28,7 +28,7 @@ export default function TourCard({
 
   return (
     <Link href={`/tours/${pkg.slug}`} className="group block h-full">
-      <article className="card-lift flex h-full flex-col overflow-hidden rounded-card border border-line bg-bone">
+      <article className="card-hover flex h-full flex-col overflow-hidden rounded-card border border-line bg-bone shadow-lift-card">
         <div className="relative aspect-[4/3] w-full overflow-hidden">
           {pkg.heroImage ? (
             <Image
@@ -47,8 +47,14 @@ export default function TourCard({
             </div>
           )}
 
+          {/* The postcard's stamp: the next real departure, on the photo. */}
+          {pkg.nextDepartureOn && !soldOut && (
+            <span className="stamp absolute left-3 top-3 z-10 rounded-md bg-lemon px-3 py-1.5 font-mono text-[11px] font-semibold text-ink shadow">
+              {formatDepartureDate(pkg.nextDepartureOn)}
+            </span>
+          )}
           {pkg.category && (
-            <span className="absolute left-3 top-3 z-10 rounded-chip bg-ink/90 px-2.5 py-1 font-mono text-[10px] uppercase tracking-label text-bone backdrop-blur-sm">
+            <span className="absolute bottom-3 left-3 z-10 rounded-chip bg-ink/90 px-2.5 py-1 font-mono text-[10px] uppercase tracking-label text-bone backdrop-blur-sm">
               {pkg.category.name}
             </span>
           )}

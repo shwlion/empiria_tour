@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, Instrument_Sans, Space_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, Figtree, Space_Grotesk } from "next/font/google";
 import JsonLd from "@/components/JsonLd";
 import Analytics from "@/components/Analytics";
 import ConsentBanner from "@/components/ConsentBanner";
@@ -7,25 +7,26 @@ import { TOUR_URL } from "@/lib/urls";
 import { absoluteUrl } from "@/lib/seo";
 import "./globals.css";
 
-// Display: expressive grotesque for headlines and the wordmark.
-const bricolage = Bricolage_Grotesque({
-  variable: "--font-bricolage",
+// Display: a rounded geometric sans for headlines — friendly, not corporate.
+// Variable font, so no weight array: every weight ships in one file.
+const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
   subsets: ["latin"],
   display: "swap",
 });
 
-// Body: a quiet, warm humanist grotesque (not the shop's Geist).
-const instrumentSans = Instrument_Sans({
-  variable: "--font-instrument",
+// Body: a soft, open humanist sans that stays legible at 14px.
+const figtree = Figtree({
+  variable: "--font-figtree",
   subsets: ["latin"],
   display: "swap",
 });
 
-// Utility: the mono "wayfinding" layer — labels, dates, cities, coordinates.
-const spaceMono = Space_Mono({
-  variable: "--font-space-mono",
+// Utility: the "wayfinding" layer — labels, dates, prices, nav links. Not a
+// true monospace; globals.css asks it for tabular figures so columns align.
+const grotesk = Space_Grotesk({
+  variable: "--font-grotesk",
   subsets: ["latin"],
-  weight: ["400", "700"],
   display: "swap",
 });
 
@@ -88,9 +89,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Load choreography only hides content when JavaScript is actually
+            running: the CSS gates every reveal on `html.js`. This must be a
+            real synchronous <head> script, not next/script — even with
+            `beforeInteractive`, App Router queues inline scripts behind the
+            client runtime, so the class would land after first paint and the
+            page would flash fully visible before the reveal animations. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "document.documentElement.classList.add('js')",
+          }}
+        />
+      </head>
       <body
-        className={`${bricolage.variable} ${instrumentSans.variable} ${spaceMono.variable} antialiased`}
+        className={`${jakarta.variable} ${figtree.variable} ${grotesk.variable} antialiased`}
       >
         <JsonLd data={[siteJsonLd, organizationJsonLd]} />
         {children}

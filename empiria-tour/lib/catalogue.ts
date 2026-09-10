@@ -17,6 +17,7 @@
 import { cache } from 'react';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import type { Database } from '@/lib/database.types';
+import { monthOption, type MonthOption } from './months';
 
 if (typeof window !== 'undefined') {
   throw new Error(
@@ -284,7 +285,16 @@ export const getCategories = cache(async () => {
 
 // ─── A2: home and discovery ───────────────────────────────────────────────
 
-export async function getFeaturedPackages(currency: Currency, limit = 6): Promise<PackageCard[]> {
+/**
+ * Featured first, then other published tours to fill the row.
+ *
+ * The home gallery scrolls horizontally, so it needs enough cards to have
+ * somewhere to travel; with only the two rows currently flagged `is_featured`
+ * it would pin and immediately release. Editors keep control of what leads —
+ * flagged tours always sort first — and the tail is just whatever else is
+ * published, so the section degrades to a plain grid rather than to nothing.
+ */
+export async function getFeaturedPackages(currency: Currency, limit = 8): Promise<PackageCard[]> {
   const db = getSupabaseAdmin();
   if (!db) return [];
 
@@ -292,12 +302,78 @@ export async function getFeaturedPackages(currency: Currency, limit = 6): Promis
     .from('packages')
     .select(CARD_SELECT)
     .eq('status', 'published')
-    .eq('is_featured', true)
+    .order('is_featured', { ascending: false })
     .limit(limit);
   if (error || !rows?.length) return [];
 
   const prices = await fetchPrices(db, rows.map((r) => r.id), currency);
   return (rows as unknown as PackageWithRelations[]).map((r) => toCard(r, prices.get(r.id), currency));
+}
+
+/**
+ * The months that actually have something departing.
+ *
+ * The strip used to be `upcomingMonths(new Date(), 12)` — pure calendar
+ * arithmetic with no idea what was bookable. With every departure sitting in
+ * one season that meant most chips led to an empty catalogue, while a month
+ * with real inventory fell outside the twelve-month window and was never
+ * offered at all. A filter whose options mostly go nowhere is worse than no
+ * filter.
+ *
+ * Counts distinct packages, not departures: the catalogue lists tours, so a
+ * tour running three times in May is one trip in May, and the number on the
+ * chip matches what clicking it shows.
+ */
+export async function getDepartureMonths(now: Date = new Date()): Promise<MonthOption[]> {
+  const db = getSupabaseAdmin();
+  if (!db) return [];
+
+  const today = now.toISOString().slice(0, 10);
+  const { data, error } = await db
+    .from('departures')
+    .select('starts_on, package_id, packages!inner ( status )')
+    .eq('packages.status', 'published')
+    .gte('starts_on', today)
+    .order('starts_on');
+  if (error || !data) return [];
+
+  const byMonth = new Map<string, Set<string>>();
+  for (const row of data as unknown as { starts_on: string; package_id: string }[]) {
+    const month = row.starts_on.slice(0, 7);
+    if (!byMonth.has(month)) byMonth.set(month, new Set());
+    byMonth.get(month)!.add(row.package_id);
+  }
+
+  return [...byMonth.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([value, packages]) => ({ ...monthOption(value, now), count: packages.size }));
+}
+
+/**
+ * One published tour as a card, by id.
+ *
+ * The blog links a post to a tour by id rather than by slug, because a slug is
+ * the one field a tour can change. Same select and same toCard as every other
+ * card on the site, so a related tour looks like a tour.
+ */
+export async function getPackageCardById(
+  id: string,
+  currency: Currency
+): Promise<PackageCard | null> {
+  const db = getSupabaseAdmin();
+  if (!db || !id) return null;
+
+  const { data: row, error } = await db
+    .from('packages')
+    .select(CARD_SELECT)
+    .eq('status', 'published')
+    .eq('id', id)
+    .maybeSingle();
+  if (error || !row) return null;
+
+  const prices = await fetchPrices(db, [(row as { id: string }).id], currency);
+  const typed = row as unknown as PackageWithRelations;
+  return toCard(typed, prices.get(typed.id), currency);
 }
 
 /**
@@ -340,6 +416,48 @@ export async function getDestinationTiles(currency: Currency, limit = 8) {
     .filter((d) => d.packageCount > 0)
     .slice(0, limit);
 }
+
+// ─── A2: the postcards ────────────────────────────────────────────────────
+
+export type ShowcaseCard = {
+  id: string;
+  title: string;
+  /** A mood line — "Islands · Slow travel" — never a date or a price. */
+  kicker: string;
+  description: string;
+  imageUrl: string;
+  imageAlt: string;
+  /** A storefront path; the expanded postcard's one button goes here. */
+  linkUrl: string;
+};
+
+/**
+ * The illustrative postcards on the home page: published, in Empiria's order,
+ * at most `limit`. They are content, not inventory — migration 0012 gives them
+ * no dates, seats or prices on purpose — so this is a plain read with nothing
+ * to join. Empty without Supabase, like everything else here.
+ */
+export const getShowcaseCards = cache(async (limit = 4): Promise<ShowcaseCard[]> => {
+  const db = getSupabaseAdmin();
+  if (!db) return [];
+  const { data, error } = await db
+    .from('showcase_cards')
+    .select('id, title, kicker, description, image_url, image_alt, link_url')
+    .eq('status', 'published')
+    .order('sort_order')
+    .order('created_at')
+    .limit(limit);
+  if (error || !data) return [];
+  return data.map((r) => ({
+    id: r.id,
+    title: r.title,
+    kicker: r.kicker,
+    description: r.description,
+    imageUrl: r.image_url,
+    imageAlt: r.image_alt,
+    linkUrl: r.link_url || '/tours',
+  }));
+});
 
 // ─── A3: search and results ───────────────────────────────────────────────
 

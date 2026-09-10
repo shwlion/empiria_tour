@@ -4,6 +4,7 @@ import CurrencySelector from './CurrencySelector';
 import MobileNav from './MobileNav';
 import UserMenu from './UserMenu';
 import DestinationMenu from './DestinationMenu';
+import NavShell from './NavShell';
 import type { DestinationOption } from '@/components/tours/SearchBar';
 import {
   getCurrencies,
@@ -13,9 +14,13 @@ import {
 } from '@/lib/catalogue';
 
 /**
- * Floating navbar — a warm ink "plate" that reads over both the dark hero and
- * the paper pages. The Empiria flame lives in the wordmark and the auth button;
- * everything else is the quiet mono wayfinding layer.
+ * Site navbar, in two tones.
+ *
+ * 'dark' (default) is the floating ink "plate" that reads over a dark hero and
+ * the inner pages — unchanged. 'light' is the Postcard look's sticky white bar
+ * with the dark logo and grey links that firm up to ink, used by pages whose
+ * hero sits on the white ground. The Empiria flame lives in the auth button in
+ * both; everything else is the quiet wayfinding layer.
  *
  * AUTH: session state is read client-side by <UserMenu /> (Supabase Auth, not
  * Auth0), which keeps these server-rendered pages statically renderable.
@@ -38,10 +43,13 @@ function flatten(nodes: DestinationNode[], depth = 0): DestinationOption[] {
 export default async function Navbar({
   overlay = false,
   currency,
+  tone = 'light',
 }: {
   overlay?: boolean;
   /** The currency the page is rendering in; falls back to the platform default. */
   currency?: string;
+  /** 'light' is the sticky white bar of the Postcard look; 'dark' the floating ink plate. */
+  tone?: 'light' | 'dark';
 }) {
   const [currencies, fallback, tree] = await Promise.all([
     getCurrencies(),
@@ -50,6 +58,54 @@ export default async function Navbar({
   ]);
   const active = currency ?? fallback;
   const destinations = flatten(tree);
+  const currencyChoices = currencies.map((c) => ({ code: c.code, symbol: c.symbol, name: c.name }));
+
+  if (tone === 'light') {
+    // Sticky rather than fixed, so the bar takes its own height in flow and no
+    // spacer is needed — `overlay` has nothing to skip here.
+    return (
+      <NavShell>
+        <div className="mx-auto flex max-w-[1240px] items-center justify-between px-6 py-4 sm:px-10">
+          <div className="flex items-center gap-3 sm:gap-8">
+            <MobileNav destinations={destinations} tone="light" />
+
+            <Link href="/" className="flex items-center" aria-label="Empiria Tours home">
+              {/* Empiria master brand mark (dark variant for the white bar). */}
+              <Image
+                src="/logo.png"
+                alt="Empiria"
+                width={1507}
+                height={522}
+                priority
+                className="h-10 w-auto"
+              />
+            </Link>
+
+            <div className="hidden items-center gap-7 sm:flex">
+              <Link
+                href="/tours"
+                className="flex min-h-[44px] items-center font-mono text-[13px] font-medium text-ink/70 transition-colors hover:text-ink"
+              >
+                Tours
+              </Link>
+              <Link
+                href="/blog"
+                className="flex min-h-[44px] items-center font-mono text-[13px] font-medium text-ink/70 transition-colors hover:text-ink"
+              >
+                Journal
+              </Link>
+              <DestinationMenu destinations={destinations} tone="light" />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 sm:gap-4">
+            <CurrencySelector currencies={currencyChoices} current={active} tone="light" />
+            <UserMenu tone="light" />
+          </div>
+        </div>
+      </NavShell>
+    );
+  }
 
   return (
     <>
@@ -80,15 +136,18 @@ export default async function Navbar({
               >
                 Tours
               </Link>
+              <Link
+                href="/blog"
+                className="font-mono text-[11px] uppercase tracking-label text-bone/60 transition-colors hover:text-bone"
+              >
+                Journal
+              </Link>
               <DestinationMenu destinations={destinations} />
             </div>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-4">
-            <CurrencySelector
-              currencies={currencies.map((c) => ({ code: c.code, symbol: c.symbol, name: c.name }))}
-              current={active}
-            />
+            <CurrencySelector currencies={currencyChoices} current={active} />
             <UserMenu />
           </div>
         </div>

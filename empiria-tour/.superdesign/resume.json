@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "targets": {
+    "/": {
+      "targetKind": "existing-ui",
+      "projectId": "05055d8b-225f-4d75-bad8-da7b4ff6504b",
+      "baselineDraftId": "a2a1240b-babb-4646-907c-23bcd30bafb8",
+      "activeDraftId": "3e950ad8-eded-4328-ae33-c90867a64a2a",
+      "designSystemPath": ".superdesign/design-system.md",
+      "referenceIds": [
+        "public-logo-white.png",
+        "public-logo.png"
+      ],
+      "brandAssets": {
+        "logo": {
+          "assetKey": "public-logo-white.png",
+          "url": "https://vgbujcuwptvheqijyjbe.supabase.co/storage/v1/object/public/hmac-uploads/projects/05055d8b-225f-4d75-bad8-da7b4ff6504b/brand-assets/public-logo-white.png/logo-white.png",
+          "sourcePath": "public/logo-white.png"
+        },
+        "logoDark": {
+          "assetKey": "public-logo.png",
+          "url": "https://vgbujcuwptvheqijyjbe.supabase.co/storage/v1/object/public/hmac-uploads/projects/05055d8b-225f-4d75-bad8-da7b4ff6504b/brand-assets/public-logo.png/logo.png",
+          "sourcePath": "public/logo.png"
+        }
+      },
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        "app/layout.tsx",
+        "app/globals.css",
+        "app/page.tsx",
+        "components/Navbar.tsx",
+        "components/MobileNav.tsx",
+        "components/DestinationMenu.tsx",
+        "components/CurrencySelector.tsx",
+        "components/UserMenu.tsx",
+        "components/Footer.tsx",
+        "components/tours/TourCard.tsx",
+        "components/tours/SearchBar.tsx",
+        "components/tours/PlateFrame.tsx",
+        "lib/money.ts"
+      ],
+      "fingerprints": {
+        ".superdesign/design-system.md": "6ce7c2fcce74a82f55a95a773a2be9cdd1f01aee35bf35f4e66c36e34fa5bd19",
+        "app/layout.tsx": "9e464382befaec269671aa614a375b76b4719cb5a86c4cec04ce9a7aa4460e30",
+        "app/globals.css": "a9d2a558a5642db03d8b71ff4d59ca83cbb3b9725a5e9cbdce6719462f0dcc4b",
+        "app/page.tsx": "66f8e63598070e85d0be72150ec2c6d41ba6b6ea9a6baca10e57554117ffe830",
+        "components/Navbar.tsx": "c2e10879abedfb8999ab4b4cee2739dc46ee1ae2f213c1410e666849fafab13e",
+        "components/MobileNav.tsx": "c2c1bd7ff1120faa780000d1370ae284bf156c58c44072a09fb4e3d725c8e075",
+        "components/DestinationMenu.tsx": "327f13476ba18ce592cf091b4677e3e6488de8e3342d48771f0eb3fc0b031746",
+        "components/CurrencySelector.tsx": "b28633a4d943adc46a2144969b15b7e23517dbd4158b474ff58108ed72104aac",
+        "components/UserMenu.tsx": "0b48ed0550fb7f060201ca226fcc7ced88db10e8b01c41b85a49e33353f84ac4",
+        "components/Footer.tsx": "db8fcc68cb6d1198d6454644d585eea9d76ada4a92ebf06bd61a308936552012",
+        "components/tours/TourCard.tsx": "7680790a3298429cad91c9ee6c03c3b8c7bbafe10475b2059dd87088275a8c1e",
+        "components/tours/SearchBar.tsx": "d855e1b084de63b04a50b70c5356e754ed58813815cde90dd24ef038fc28d878",
+        "components/tours/PlateFrame.tsx": "a7837f71cbce43061d5fdb28e6985c195f93819643b470b57185fa7006cf5534",
+        "lib/money.ts": "26e0f34d2289e9e1ea2485957f0c2b1dd9afa21ba088bc1589cedef2259a3485"
+      },
+      "components": [],
+      "drafts": {
+        "a2a1240b-babb-4646-907c-23bcd30bafb8": {
+          "title": "Current home page (reproduction)",
+          "visualDirection": "baseline: faithful reproduction of the current field-guide home page",
+          "currentVersion": 1
+        },
+        "3c77b8bb-1d22-4340-b0b1-dc88bacc7953": {
+          "title": "Empiria Tours — Departures",
+          "visualDirection": "Look A — Departures: night hero with a live departures board, sea/foam/limestone palette, Syne + Manrope + DM Mono",
+          "parentDraftId": "a2a1240b-babb-4646-907c-23bcd30bafb8",
+          "currentVersion": 1,
+          "model": "claude-opus-4-8"
+        },
+        "3e950ad8-eded-4328-ae33-c90867a64a2a": {
+          "title": "Empiria Tours — Postcard",
+          "visualDirection": "v6: buttons use the Empiria brand orange #f15a29 (hover #d6420f, from the Events projects); teal stays for links/eyebrows/chips. Look B — Postcard, v5: white landing page; hero = headline + inline search (left) + the illustrative POSTCARD DECK (right; four \"what a trip could be\" cards, no dates/seats/prices; content will come from an admin-editable showcase_cards table). Click a postcard → FLIP-expands to a full-screen background, hero becomes a fixed dialog (scroll locked, siblings inert), left column shows the postcard title/description + \"Browse all tours\" CTA, deck keeps the other three; ✕/Escape reverses. Verified in headless Chrome via CDP (open/swap/close, focus, inert, no JS errors, no broken images). v4 = deck without takeover; v3 = deck over photo hero; v2 = slideshow + ticker; v1 = static.",
+          "parentDraftId": "a2a1240b-babb-4646-907c-23bcd30bafb8",
+          "currentVersion": 6,
+          "model": "claude-opus-4-8",
+          "generatedBy": "claude-fable-5-1"
+        }
+      },
+      "updatedAt": "2026-09-08T03:34:24.871Z"
+    }
+  }
+}

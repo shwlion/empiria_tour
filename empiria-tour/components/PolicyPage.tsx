@@ -37,7 +37,7 @@ export default async function PolicyPage({ slug }: { slug: string }) {
                 <h1 className="mt-3 font-display text-[32px] font-semibold leading-tight tracking-tight text-ink sm:text-[40px]">
                     {page.title}
                 </h1>
-                <div className="route-rule mt-8 h-px w-full opacity-60" aria-hidden="true" />
+                <div className="mt-8 h-px w-full bg-sand" aria-hidden="true" />
                 <div className="mt-8 whitespace-pre-line text-[16px] leading-relaxed text-stone">
                     {page.body}
                 </div>

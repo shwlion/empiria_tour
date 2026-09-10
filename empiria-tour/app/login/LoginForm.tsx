@@ -11,7 +11,7 @@ import { safeNextPath } from '@/lib/urls';
 type Mode = 'signin' | 'signup';
 
 const oauthClass =
-  'flex w-full items-center justify-center rounded-lg border border-line bg-paper px-3 py-2.5 text-sm font-medium text-ink transition-colors hover:border-flame hover:bg-bone disabled:opacity-60';
+  'flex w-full items-center justify-center rounded-lg border border-line bg-paper px-3 py-2.5 text-sm font-medium text-ink transition-colors hover:border-flame hover:bg-sand/40 disabled:opacity-60';
 
 const inputClass =
   'w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink outline-none transition-colors focus:border-flame';

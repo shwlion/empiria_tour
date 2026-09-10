@@ -36,32 +36,36 @@ export default async function Footer() {
     (settings?.social_links as Record<string, string> | null) ?? {}
   ).filter(([, url]) => typeof url === 'string' && url.length > 0);
 
-  const linkClass = 'text-[14px] text-bone/60 transition-colors hover:text-bone';
-  const headClass = 'font-mono text-[10px] uppercase tracking-label text-flame';
+  // `.ul` draws the underline in on hover (globals.css).
+  const linkClass = 'ul text-[14px] text-stone hover:text-ink';
+  const headClass = 'font-mono text-[11px] uppercase tracking-label text-ember';
 
   return (
-    <footer className="relative z-40 w-full bg-ink px-6 pt-16 pb-8 text-bone md:px-16">
+    <footer className="mt-20 w-full bg-white px-6 pt-16 pb-8 md:px-16">
       <div className="mx-auto max-w-7xl">
-        {/* The route signature closes the page as a flame rule. */}
-        <div className="route-rule mb-14 h-px w-full opacity-70" aria-hidden="true" />
+        {/* A sand hairline closes the page. */}
+        <div className="mb-14 h-px w-full bg-sand" aria-hidden="true" />
 
-        <div className="flex flex-col items-start justify-between gap-12 border-b border-white/10 pb-12 md:flex-row">
+        <div className="flex flex-col items-start justify-between gap-12 border-b border-sand pb-12 md:flex-row">
           {/* Brand + the identity Part D wants visible */}
           <div className="flex max-w-sm flex-col gap-4">
             <Image
-              src="/logo-white.png"
+              src="/logo.png"
               alt="Empiria Tours"
               width={1507}
               height={522}
-              className="h-10 w-auto"
+              /* self-start: the parent is a flex column, whose default
+                 align-items:stretch would force w-auto to the full max-w-sm
+                 and squash the mark to a 9.6 aspect. */
+              className="h-10 w-auto self-start"
             />
-            <p className="text-[14px] leading-relaxed text-bone/60">
+            <p className="text-[14px] leading-relaxed text-stone">
               Small-group journeys, booked properly. Real departures, all-in pricing,
               and someone to talk to when plans change.
             </p>
 
             {(settings?.company_name || settings?.registration_number) && (
-              <p className="font-mono text-[11px] leading-relaxed text-bone/50">
+              <p className="font-mono text-[11px] leading-relaxed text-stone">
                 {settings?.company_name}
                 {settings?.company_name && settings?.registration_number && ' · '}
                 {settings?.registration_number && `Registration ${settings.registration_number}`}
@@ -118,7 +122,7 @@ export default async function Footer() {
                 </a>
               ))}
               {!settings?.contact_email && !settings?.contact_phone && social.length === 0 && (
-                <span className="text-[14px] text-bone/40">Contact details to follow.</span>
+                <span className="text-[14px] text-stone/70">Contact details to follow.</span>
               )}
             </div>
           </div>
@@ -126,14 +130,14 @@ export default async function Footer() {
 
         {/* Statutory notice + any footer-placed disclosure block (Part D) */}
         {(settings?.statutory_notice || notices.length > 0) && (
-          <div className="flex flex-col gap-2 border-b border-white/10 py-6">
+          <div className="flex flex-col gap-2 border-b border-sand py-6">
             {settings?.statutory_notice && (
-              <p className="text-[12.5px] leading-relaxed text-bone/50">
+              <p className="text-[12.5px] leading-relaxed text-stone">
                 {settings.statutory_notice}
               </p>
             )}
             {notices.map((n) => (
-              <p key={n.id} className="text-[12.5px] leading-relaxed text-bone/50">
+              <p key={n.id} className="text-[12.5px] leading-relaxed text-stone">
                 {n.body}
               </p>
             ))}
@@ -141,13 +145,13 @@ export default async function Footer() {
         )}
 
         {/* Colophon */}
-        <div className="flex flex-col items-center justify-between gap-4 pt-8 font-mono text-[11px] uppercase tracking-wide text-bone/45 md:flex-row">
+        <div className="flex flex-col items-center justify-between gap-4 pt-8 font-mono text-[11px] uppercase tracking-wide text-stone md:flex-row">
           <span>
             &copy; {new Date().getFullYear()} {settings?.company_name ?? 'Empiria'} &middot; 43.6532&deg; N
           </span>
           <div className="flex gap-6">
-            <Link href="/privacy" className="transition-colors hover:text-bone">Privacy</Link>
-            <Link href="/terms" className="transition-colors hover:text-bone">Terms</Link>
+            <Link href="/privacy" className="ul hover:text-ink">Privacy</Link>
+            <Link href="/terms" className="ul hover:text-ink">Terms</Link>
           </div>
         </div>
       </div>

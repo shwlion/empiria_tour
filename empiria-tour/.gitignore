@@ -44,3 +44,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+# Superdesign: the canvas draft's design system and the ids that resume it are
+# worth keeping; the repo analysis it generates and the HTML scratch are not.
+.superdesign/tmp/
+.superdesign/init/

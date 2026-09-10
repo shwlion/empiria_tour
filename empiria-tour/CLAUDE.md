@@ -37,14 +37,57 @@ wiring auth:
   UUID** (the replacement for the shop's `auth0_id`).
 - See the header comment in `app/login/page.tsx`.
 
-### Design origin
-The UI is copied from `empiria-shop` (same Tailwind tokens, Geist fonts, floating
-pill navbar, EventCard/EventsGrid/FeaturedHero). Product copy is retargeted from
-"events" to "tours". Keep visual parity with the shop when adding components.
+### Design — "Look B, Postcard" (September 2026)
+The field-guide identity is retired. The storefront is **white**, with the
+Empiria brand orange (`--flame #f15a29`, hover `--ember #d6420f`) reserved for
+buttons and a teal secondary (`--teal #0e7c86`) for eyebrows, links, chips and
+focus. Fonts: Plus Jakarta Sans (display), Figtree (body), Space Grotesk (the
+mono "wayfinding" layer — not monospace, so `.font-mono` sets tabular numerals).
+Cards are 20px-radius, fields 12px, chips pills. **The Tailwind token names
+did not change** (`flame`, `ink`, `paper`, `bone`, `stone`, `line`, …) — only
+their values in `app/globals.css` — so every page inherited the redesign
+without markup edits. The design system, its history and the Superdesign
+draft are in `.superdesign/design-system.md` and `.superdesign/resume.json`.
 
-### Data flow (home)
-`app/page.tsx` (server) fetches published events + featured + categories from
-Supabase when configured, sorts by soonest upcoming occurrence, and passes them
-to `HomeContent` → `FeaturedHero` (hero slideshow) + `EventsGrid` (client-side
-category filter + search + pagination). All wrapped in try/catch so a missing
-schema degrades to the empty state instead of crashing.
+`components/Navbar.tsx` takes `tone` (`'light'` is the default: a sticky white
+bar via `components/NavShell.tsx`; `'dark'` is the old floating plate) and
+threads it into its menus. The footer is white sitewide.
+
+### The landing page
+`app/page.tsx` → `components/home/*`:
+- **`HomeHero`** (client) owns the hero and the *takeover*. Its left column is
+  a server-rendered slot (`HeroIntro`: headline, `SearchBar`, the Part D
+  seller line). Its right column is the **postcard deck**.
+- **`PostcardDeck`** renders the four illustrative postcards (`showcase_cards`,
+  read by `getShowcaseCards`; edited in the admin console under Content →
+  Showcase). They are content, not inventory: no dates, seats or prices. The
+  stack is server-rendered from `lib/deck.ts` (slot maths, elastic curve,
+  timeline — pure, tested) and animated by `useDeckEngine.ts`, a Web
+  Animations API port of the GSAP CardSwap component: no dependency added.
+- **Tapping a postcard** expands its photo from the card rect to the viewport
+  (a FLIP on a fixed `.zoom-layer`), the section becomes `position: fixed`
+  (`html.takeover`), scroll is locked, everything outside is `inert`, the
+  left column shows that postcard's words and one "Browse all tours" link; ✕
+  or Escape flies it back and returns focus. `components/home/takeover.ts`
+  holds the DOM chores. Reduced motion switches states instantly.
+- Below: `MonthStrip` (`?month=YYYY-MM` filters the catalogue; `lib/months.ts`),
+  the curated grid (`TourCard` carries a lemon date stamp), destinations,
+  "How booking works", the trust band. `Reveal` is the single
+  IntersectionObserver behind `data-reveal` / `data-stagger` / `data-draw` /
+  `data-count`. Load choreography (`.rise-in`, `.fade-in`, `.card-enter`)
+  only hides content under `html.js`, which `app/layout.tsx` sets with an
+  inline script before paint.
+
+### Two things the browser taught us
+- **`Intl.formatRange` differs between ICU builds** (Bun: "May 1 – 8", Chrome:
+  "May 1–8"), so `formatDateRange` in `lib/money.ts` composes the string
+  itself. Before that, every tour page hydrated with a text mismatch.
+- **Unlayered CSS beats Tailwind utilities.** A `z-index` written in
+  `globals.css` silently overrode a `z-[5]` in JSX; stacking for the takeover
+  layers therefore lives in the JSX, and `globals.css` sets none.
+
+### Verifying it
+`scripts/` has no browser harness yet; the one used during the redesign was a
+40-line CDP driver over Node's built-in WebSocket against
+`/Applications/Google Chrome.app` (screenshots, real clicks, Escape, an
+overflow audit, console errors). If you need it again, that is all it is.

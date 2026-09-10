@@ -1,40 +1,55 @@
 @import "tailwindcss";
 
 /*
-  Empiria Tours — Airbnb's structure, the field guide's geometry.
+  Empiria Tours — Look B, "Postcard".
 
-  The LAYOUT is borrowed: generous whitespace, an image-forward card grid, a
+  The LAYOUT is Airbnb's: generous whitespace, an image-forward card grid, a
   segmented search control, a filter rail beside results, a sticky cost panel.
   Travellers already know that vocabulary.
 
-  The SURFACE is ours and unchanged from the original identity: squared corners,
-  hairline borders rather than soft rings, corner-bracket frames, the dashed
-  flame route motif, and the lift-and-light-up hover that has been on these
-  cards since the first build. Rounded pill-and-shadow was the shop's default,
-  not this brand's.
+  The SURFACE is a white ground with rounded 20px cards that read as postcards
+  laid on a table. Two accents, each with one job: the Empiria brand orange
+  (flame) is reserved for buttons and CTAs — the thing you press — and teal is
+  the secondary voice for labels, links, section heads and focus. Type is
+  Plus Jakarta Sans for display, Figtree for body, Space Grotesk for the
+  numeric / wayfinding layer.
 
-  Light-mode only: every surface is an explicit warm value, so the OS dark-mode
+  The old field-guide motifs (dashed route rule, corner-bracket frame, drifting
+  thread) are retired; the token NAMES below are unchanged so no component
+  markup had to change with them.
+
+  Light-mode only: every surface is an explicit value, so the OS dark-mode
   preference can never flip text to an unreadable grey.
 */
 
 :root {
-  --flame: #f15a29;   /* Empiria brand accent — unchanged */
-  --ember: #c7431a;   /* darker flame for hover / press */
-  --ink: #17130f;     /* warm near-black — text + dark plates */
-  --soot: #241d17;    /* warm dark surface */
-  --paper: #f6f2ea;   /* warm page ground */
-  --bone: #fcfaf5;    /* near-white card surface */
-  --stone: #6c6255;   /* warm secondary text */
-  --line: #e6ded1;    /* warm hairline / border */
+  --flame: #f15a29;      /* Empiria brand accent — unchanged; buttons and CTAs */
+  --ember: #d6420f;      /* darker flame for hover / press */
+  --ink: #1d2321;        /* olive near-black — text + dark plates */
+  --soot: #2a312e;       /* dark surface */
+  --paper: #ffffff;      /* page ground */
+  --bone: #ffffff;       /* card surface (same as the ground; cards are lifted by shadow, not tint) */
+  --stone: #6a716d;      /* secondary text */
+  --line: #ebe4d8;       /* warm hairline / border */
 
-  /* Squared geometry. Boxes, not pills. */
-  --r-card: 8px;      /* cards, plates, panels */
-  --r-field: 6px;     /* inputs and selects */
-  --r-chip: 4px;      /* badges, tags, small markers */
+  --teal: #0e7c86;       /* secondary accent — labels, links, focus */
+  --teal-dark: #0a5c64;  /* teal hover / press */
+  --sand: #e9dfcf;       /* warm neutral fill — dividers, soft hover, placeholders */
+  --lemon: #f3d35a;      /* stamp / highlight on dark photography */
+  --coral: #d9534f;      /* error, danger, "few seats left" */
+  --success: #3a8f5c;    /* confirmed, available */
 
-  /* The card hover shadow, carried over verbatim from the original EventCard. */
-  --lift-card: 0 24px 40px -24px rgb(23 19 15 / 0.45);
-  --lift-panel: 0 18px 40px -20px rgb(23 19 15 / 0.35);
+  /* Rounded geometry. Postcards, not plates. */
+  --r-card: 20px;        /* cards, plates, panels */
+  --r-field: 12px;       /* inputs and selects */
+  --r-chip: 9999px;      /* badges, tags, small markers — pills */
+
+  /* Soft, low shadows: the card looks laid on the table, not floating over it. */
+  --lift-card: 0 24px 48px -32px rgb(29 35 33 / 0.30);
+  --lift-panel: 0 30px 60px -35px rgb(29 35 33 / 0.35);
+
+  /* One easing curve for every choreographed move. */
+  --ease: cubic-bezier(.2, .8, .2, 1);
 }
 
 @theme inline {
@@ -46,6 +61,12 @@
   --color-bone: var(--bone);
   --color-stone: var(--stone);
   --color-line: var(--line);
+  --color-teal: var(--teal);
+  --color-teal-dark: var(--teal-dark);
+  --color-sand: var(--sand);
+  --color-lemon: var(--lemon);
+  --color-coral: var(--coral);
+  --color-success: var(--success);
 
   --radius-card: var(--r-card);
   --radius-field: var(--r-field);
@@ -54,107 +75,87 @@
   --shadow-lift-card: var(--lift-card);
   --shadow-lift-panel: var(--lift-panel);
 
-  --font-display: var(--font-bricolage);
-  --font-sans: var(--font-instrument);
-  --font-mono: var(--font-space-mono);
+  --font-display: var(--font-jakarta);
+  --font-sans: var(--font-figtree);
+  --font-mono: var(--font-grotesk);
 }
 
 body {
   background: var(--paper);
   color: var(--ink);
-  font-family: var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
+/*
+  Space Grotesk is not monospace. Prices, dates and counts still have to line
+  up in columns, so the "mono" utility asks for tabular figures instead.
+*/
+.font-mono {
+  font-variant-numeric: tabular-nums;
+}
+
 ::selection {
-  background: var(--flame);
+  background: var(--teal);
   color: #fff;
 }
 
 /* Visible keyboard focus everywhere (quality floor) */
 :focus-visible {
-  outline: 2px solid var(--flame);
+  outline: 2px solid var(--teal);
   outline-offset: 2px;
 }
 
-/* The signature: a dashed itinerary/route rule in the brand flame. */
-.route-rule {
-  background-image: repeating-linear-gradient(
-    to right,
-    var(--flame) 0 9px,
-    transparent 9px 20px
-  );
-}
-
-/* Field-label letterspacing helper for the mono wayfinding layer. */
+/* Label letterspacing helper for the small-caps wayfinding layer. */
 .tracking-label {
-  letter-spacing: 0.22em;
+  letter-spacing: 0.12em;
 }
 
 /*
-  The card hover, exactly as it was: rise, border lights to flame, deep soft
-  shadow underneath. The border doing the work — rather than a ring or a glow —
-  is what makes these read as drawn boxes.
+  The card hover: rise and a deeper, softer shadow underneath. The border stays
+  put — on a white ground a lit border reads as a form error, not a hover.
 */
 .card-lift {
-  transition: transform 300ms ease, box-shadow 300ms ease, border-color 300ms ease;
+  transition: transform 300ms var(--ease), box-shadow 300ms var(--ease);
 }
 .card-lift:hover {
-  transform: translateY(-4px);
-  border-color: var(--flame);
+  transform: translateY(-6px);
   box-shadow: var(--lift-card);
 }
 
 /*
   The segmented search control. Airbnb's division of labour — Where / When / Who
-  as separate hit targets in one frame — drawn as a squared plate with hairline
-  dividers instead of a pill.
+  as separate hit targets — drawn as a white plate with each segment in its own
+  rounded field rather than hairline dividers between them.
 */
 .search-bar {
-  border-radius: var(--r-card);
-  background: var(--bone);
+  border-radius: 24px;
+  background: #fff;
   border: 1px solid var(--line);
-  transition: border-color 300ms ease, box-shadow 300ms ease;
+  box-shadow: var(--lift-panel);
+  padding: 12px;
+  gap: 8px;
+  transition: border-color 300ms var(--ease), box-shadow 300ms var(--ease);
 }
 .search-bar:focus-within {
-  border-color: var(--flame);
-  box-shadow: var(--lift-panel);
-}
-.search-bar > * + * {
-  border-left: 1px solid var(--line);
+  border-color: var(--teal);
 }
 .search-seg {
-  border-radius: var(--r-field);
-  transition: background-color 140ms ease;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+  transition: border-color 200ms var(--ease);
 }
-.search-seg:hover { background: color-mix(in srgb, var(--paper) 70%, transparent); }
-
-@media (max-width: 767px) {
-  .search-bar > * + * { border-left: 0; border-top: 1px solid var(--line); }
-}
-
-/*
-  Corner-bracket frame — the field-guide plate. Four flame ticks on an inset
-  hairline box. Used on the hero and anywhere a panel should read as a surveyed
-  area rather than a card.
-*/
-.corner-frame { position: relative; }
-.corner-frame::before {
-  content: "";
-  position: absolute;
-  inset: 12px;
-  border: 1px solid rgb(255 255 255 / 0.10);
-  pointer-events: none;
-}
-@media (min-width: 640px) {
-  .corner-frame::before { inset: 24px; }
+.search-seg:hover,
+.search-seg:focus-within {
+  border-color: var(--teal);
 }
 
 /* Image placeholder while a package has no photography yet. */
 .img-fallback {
   background:
-    radial-gradient(120% 90% at 20% 0%, color-mix(in srgb, var(--flame) 12%, transparent), transparent 60%),
-    linear-gradient(160deg, var(--paper), var(--line));
+    radial-gradient(120% 90% at 20% 0%, color-mix(in srgb, var(--teal) 14%, transparent), transparent 60%),
+    linear-gradient(160deg, #fff, var(--sand));
 }
 
 /* Horizontal rails scroll without a visible scrollbar. */
@@ -171,12 +172,258 @@ body {
 }
 .animate-shake { animation: shake 0.4s ease-in-out; }
 
-/* The drifting itinerary thread. */
-@keyframes route-drift {
-  from { stroke-dashoffset: 0; }
-  to { stroke-dashoffset: -48; }
+/*
+  ── Top bar ──
+  Sticky white bar that gains a shadow once the page has scrolled under it.
+  The class is toggled by <NavShell /> straight on the element, no React state.
+*/
+.nav-shell {
+  transition: box-shadow .35s var(--ease), background-color .35s var(--ease);
 }
-.route-drift { animation: route-drift 3.2s linear infinite; }
+.nav-shell.is-scrolled {
+  background: rgba(255, 255, 255, .92);
+  box-shadow: 0 10px 30px -22px rgb(29 35 33 / .4);
+}
+
+/*
+  ── Load choreography ──
+  Gated on `html.js` (set by an inline script in the layout) so content is only
+  ever hidden when JavaScript is actually running to reveal it again.
+*/
+.js .fade-in {
+  opacity: 0;
+  animation: fadeIn .8s var(--ease) forwards;
+  animation-delay: var(--d, 0ms);
+}
+.js .rise-in {
+  opacity: 0;
+  transform: translateY(24px);
+  animation: riseIn .7s var(--ease) forwards;
+  animation-delay: var(--d, 0ms);
+}
+.js .card-enter {
+  opacity: 0;
+  transform: translateY(40px);
+  animation: riseIn .8s var(--ease) .4s forwards;
+}
+@keyframes fadeIn { to { opacity: 1; } }
+@keyframes riseIn { to { opacity: 1; transform: none; } }
+
+/* ── Scroll reveals: `.in` is added once by an IntersectionObserver ── */
+.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity .7s var(--ease), transform .7s var(--ease);
+  transition-delay: calc(var(--i, 0) * 70ms);
+}
+.js [data-reveal="x"] { transform: translateX(40px); }
+.js [data-reveal].in { opacity: 1; transform: none; }
+
+/* ── Postcard deck: a leaning stack, the top card slides off to the back ── */
+.deck { perspective: 1200px; }
+.deck-stage {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+.deck .pc {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  height: 100%;
+  width: 100%;
+  transform: translate(-50%, -50%);
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  will-change: transform;
+}
+.deck .pc img { transition: transform .7s var(--ease); }
+.deck .pc:hover img { transform: scale(1.1); }
+/* Lemon, not teal: the card is a photograph and teal disappears against it. */
+.deck .pc:focus-visible {
+  outline: 3px solid var(--lemon);
+  outline-offset: 4px;
+}
+
+/*
+  ── Takeover: a postcard expands into the hero's full-screen background ──
+  The hero becomes a fixed dialog over a scroll-locked page; the zoom layer is
+  the animating photograph beneath it.
+*/
+html.takeover,
+html.takeover body { overflow: hidden; }
+html.takeover body {
+  position: fixed;
+  width: 100%;
+}
+html.takeover .home-hero {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: transparent;
+  overflow: auto;
+}
+html.takeover .home-hero .hero-grid {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+html.takeover .deck-caption { color: rgb(255 255 255 / .75); }
+/* No z-index here: the layers stack inside the hero with utilities (z-[5] under
+   the content while open, z-[60] over the page while flying back). An unlayered
+   value would beat both. */
+.zoom-layer {
+  position: fixed;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--ink);
+}
+.zoom-layer.is-full {
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 0 !important;
+}
+.zoom-layer img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.zoom-scrim {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity .7s var(--ease) .25s;
+  background: linear-gradient(90deg, rgb(29 35 33 / .78) 0%, rgb(29 35 33 / .42) 50%, rgb(29 35 33 / .18) 100%);
+}
+.zoom-layer.is-open .zoom-scrim { opacity: 1; }
+/* The hero's own close button and white wordmark exist only during a takeover. */
+.hero-close,
+.hero-brand { display: none; }
+html.takeover .hero-close,
+html.takeover .hero-brand { display: flex; }
+/* The expanded card is hidden in the deck — the zoom layer is standing in for it. */
+.pc[aria-expanded="true"] { visibility: hidden; }
+
+/* ── Cards & tiles ── */
+.stamp {
+  transform: rotate(-6deg);
+  transition: transform .4s var(--ease);
+}
+.card-hover {
+  position: relative;
+  transition: transform .4s var(--ease), box-shadow .4s var(--ease),
+              border-color .4s var(--ease);
+}
+.card-hover img { transition: transform .6s var(--ease); }
+/*
+  The ember edge. A masked pseudo-element, not border-image, which cannot
+  follow border-radius. overflow-hidden on the card clips this to the padding
+  box, so it sits just inside the grey hairline; the hairline fades to
+  transparent on hover and --bone is #fff, so the 1px it leaves behind is
+  invisible against the page and the two read as one ring.
+
+  Deliberately no z-index: globals.css sets none anywhere (an unlayered one
+  here once overrode a z-[5] in JSX), which leaves the ring below the z-10
+  date stamp and seats chip — where it belongs.
+*/
+.card-hover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    var(--ember) 0%,
+    var(--flame) 45%,
+    color-mix(in srgb, var(--ember) 20%, transparent) 100%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .4s var(--ease);
+}
+.card-hover:hover::after { opacity: 1; }
+.card-hover:hover {
+  transform: translateY(-6px);
+  border-color: transparent;
+  /* The neutral lift, plus an ember tint so the card warms as it rises. */
+  box-shadow: 0 34px 56px -30px rgb(29 35 33 / .4),
+              0 18px 40px -24px color-mix(in srgb, var(--ember) 60%, transparent);
+}
+.card-hover:hover img { transform: scale(1.05); }
+.card-hover:hover .stamp { transform: rotate(-2deg); }
+/* Caption nudges up on hover. */
+.cap {
+  transform: translateY(6px);
+  transition: transform .45s var(--ease);
+}
+.card-hover:hover .cap { transform: translateY(0); }
+.arrow {
+  display: inline-flex;
+  transition: transform .3s var(--ease);
+}
+a:hover .arrow,
+button:hover .arrow { transform: translateX(4px); }
+
+/* ── Buttons: the ember sweeps in from the left ── */
+.sweep {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.sweep::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--ember);
+  transform: translateX(-101%);
+  transition: transform .35s var(--ease);
+  z-index: -1;
+}
+.sweep:hover::before { transform: translateX(0); }
+
+/* ── Text links: the underline draws in ── */
+.ul {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1px;
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  transition: background-size .3s var(--ease), color .3s var(--ease);
+}
+.ul:hover { background-size: 100% 1px; }
+
+/* ── "How booking works": the dashed line draws between the steps ── */
+.steps-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 52px;
+  height: 8px;
+  width: 100%;
+  pointer-events: none;
+}
+.draw-base {
+  stroke: var(--ember);
+  stroke-width: 2;
+  fill: none;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 1.6s var(--ease) .2s;
+}
+.in .draw-base { stroke-dashoffset: 0; }
+/* The mask is painted in the page white so the gaps read as gaps. */
+.draw-mask {
+  stroke: #fff;
+  stroke-width: 4;
+  fill: none;
+  stroke-dasharray: .012 .014;
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -185,6 +432,178 @@ body {
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
-  /* Keep the colour change — it carries the hover state — drop the movement. */
+  /* Keep the shadow — it carries the hover state — drop the movement. */
   .card-lift:hover { transform: none; }
+  /* Every choreographed element lands in its final state immediately. */
+  .js [data-reveal],
+  .js .fade-in,
+  .js .rise-in,
+  .js .card-enter {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+  .card-hover:hover { transform: none; }
+  .card-hover:hover img { transform: none; }
+  .card-hover, .card-hover::after { transition: none; }
+  .deck .pc:hover img { transform: none; }
+  .draw-base { stroke-dashoffset: 0; }
+  .zoom-scrim { transition: none; }
+}
+
+/* ── The blog body ────────────────────────────────────────────────────────
+   Typography only. Colour for links and the image frame is set by utility
+   classes in lib/blogMarkdown.ts, and an unlayered rule here would silently
+   beat them — the same trap the takeover layers hit. So nothing below sets
+   `color` on an anchor or a radius on an image. */
+.blog-body { font-size: 17px; line-height: 1.75; color: var(--ink); }
+.blog-body > * + * { margin-top: 1.15em; }
+.blog-body h2 {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  margin-top: 2em;
+}
+.blog-body h3 {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 1.75em;
+}
+.blog-body ul, .blog-body ol { padding-left: 1.35em; }
+.blog-body ul { list-style: disc; }
+.blog-body ol { list-style: decimal; }
+.blog-body li + li { margin-top: .4em; }
+.blog-body li::marker { color: var(--stone); }
+.blog-body blockquote {
+  border-left: 3px solid var(--ember);
+  padding-left: 1.1em;
+  color: var(--stone);
+  font-style: italic;
+}
+.blog-body code {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: .88em;
+  background: var(--sand);
+  border-radius: 5px;
+  padding: .12em .38em;
+}
+/* A partner can paste a URL with no spaces in it; it must not widen the page. */
+.blog-body a { overflow-wrap: anywhere; }
+
+/* ── The partner application stepper ──────────────────────────────────────
+   Everything here keys off `html.js`, the class app/layout.tsx sets inline
+   before paint. Without JavaScript the chrome stays hidden, every panel
+   stays visible, and the form is the long single-page form it has always
+   been — which is what a stepper must degrade to when it cannot run. */
+.apply-stepper__chrome { display: none; }
+html.js .apply-stepper__chrome { display: flex; }
+html.js ol.apply-stepper__chrome { display: flex; }
+html.js h3.apply-stepper__chrome { display: block; }
+html.js .apply-stepper__nojs { display: none; }
+
+/* Height is set inline from a ResizeObserver; the transition is the animation. */
+.apply-stepper__viewport { position: relative; }
+html.js .apply-stepper__viewport {
+  /*
+    The viewport has to clip so the height transition reads as a wipe. Plain
+    `overflow: hidden` clips to the padding box, which cut the app-wide
+    :focus-visible ring (2px outline at 2px offset) off every field sitting
+    against an edge. `overflow: clip` takes a margin; the `hidden` line above
+    it stays as the fallback for engines without it.
+  */
+  overflow: hidden;
+  overflow: clip;
+  overflow-clip-margin: 8px;
+  transition: height .38s var(--ease);
+}
+html.js .apply-step[data-active='false'] { display: none; }
+
+.apply-stepper__dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.25rem;
+  width: 2.25rem;
+  flex: none;
+  border-radius: 9999px;
+  border: 2px solid var(--line);
+  background: var(--bone);
+  color: var(--stone);
+  transition: background-color .3s var(--ease), border-color .3s var(--ease),
+              color .3s var(--ease);
+}
+.apply-stepper__dot[data-state='active'] {
+  border-color: var(--flame);
+  color: var(--flame);
+  background: var(--paper);
+}
+.apply-stepper__dot[data-state='complete'] {
+  border-color: var(--flame);
+  background: var(--flame);
+  color: #fff;
+}
+.apply-stepper__dot:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 3px;
+}
+
+.apply-stepper__connector {
+  position: relative;
+  margin: 0 1rem;
+  height: 2px;
+  flex: 1 1 auto;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: var(--line);
+}
+.apply-stepper__connector-fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left;
+  transform: scaleX(0);
+  background: var(--flame);
+  transition: transform .5s var(--ease);
+}
+.apply-stepper__connector[data-complete='true'] .apply-stepper__connector-fill {
+  transform: scaleX(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.js .apply-stepper__viewport { transition: none; }
+  .apply-stepper__dot,
+  .apply-stepper__connector-fill { transition: none; }
+}
+
+/* ── The claw rake on /partners ───────────────────────────────────────────
+   Deliberately NOT reusing .draw-base. That rule sets stroke-dashoffset: 1
+   unconditionally, so its line is invisible when JavaScript never runs — a
+   pre-existing quirk on the landing page that this must not inherit.
+   Here the mark is drawn by default and only hidden-then-drawn under
+   `html.js`, where something exists to reveal it. */
+.claw { overflow: visible; }
+.claw__slash {
+  fill: none;
+  stroke: var(--ember);
+  stroke-linecap: round;
+  /* pathLength=1 normalises each path, so a 1-unit dash covers all of it. */
+  stroke-dasharray: 1;
+}
+html.js .claw__slash {
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 1.1s var(--ease);
+}
+html.js [data-draw].in .claw__slash { stroke-dashoffset: 0; }
+/* The rake reads as one swipe, so the slashes land a beat apart. */
+html.js .claw__slash:nth-of-type(2) { transition-delay: .12s; }
+html.js .claw__slash:nth-of-type(3) { transition-delay: .24s; }
+
+@media (prefers-reduced-motion: reduce) {
+  html.js .claw__slash {
+    stroke-dashoffset: 0;
+    transition: none;
+  }
 }

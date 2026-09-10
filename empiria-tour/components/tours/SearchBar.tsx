@@ -26,11 +26,18 @@ export type DestinationOption = { path: string; name: string; depth: number };
 export default function SearchBar({
   destinations,
   initial,
+  months: providedMonths,
   compact = false,
   tone = 'light',
 }: {
   destinations: DestinationOption[];
   initial?: { destination?: string; month?: string; travellers?: number };
+  /**
+   * Months something actually departs in (see getDepartureMonths). Omitted,
+   * the control falls back to a rolling calendar — which is only right when
+   * the caller has no way to ask the database.
+   */
+  months?: { value: string; label: string }[];
   compact?: boolean;
   /** 'dark' sits the control on an ink plate — used by the hero. */
   tone?: 'light' | 'dark';
@@ -40,8 +47,15 @@ export default function SearchBar({
   const [month, setMonth] = useState(initial?.month ?? '');
   const [travellers, setTravellers] = useState(initial?.travellers ?? 2);
 
-  // Eighteen months forward is the horizon a tour operator realistically sells.
+  /*
+    Real months when the caller can supply them, so every option returns
+    something. The rolling calendar below is the fallback: eighteen months
+    forward is the horizon a tour operator realistically sells, but most of
+    them lead nowhere, which is exactly why the month strip was removed rather
+    than kept alongside this control.
+  */
   const months = useMemo(() => {
+    if (providedMonths) return providedMonths;
     const out: { value: string; label: string }[] = [];
     const now = new Date();
     for (let i = 0; i < 18; i++) {
@@ -52,7 +66,7 @@ export default function SearchBar({
       });
     }
     return out;
-  }, []);
+  }, [providedMonths]);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();

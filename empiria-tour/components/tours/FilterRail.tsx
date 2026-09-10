@@ -146,7 +146,7 @@ export default function FilterRail({
                   aria-pressed={on}
                   onClick={() => setParam('category', on ? null : c.slug)}
                   className={`rounded-chip border px-3 py-2 text-left text-[14px] transition-colors ${
-                    on ? 'border-ink bg-ink text-bone' : 'border-transparent text-ink hover:border-line hover:bg-bone'
+                    on ? 'border-ink bg-ink text-bone' : 'border-transparent text-ink hover:border-line hover:bg-sand/40'
                   }`}
                 >
                   {c.name}
@@ -170,7 +170,7 @@ export default function FilterRail({
                   aria-pressed={on}
                   onClick={() => setParam('collection', on ? null : c.slug)}
                   className={`rounded-chip border px-3 py-2 text-left text-[14px] transition-colors ${
-                    on ? 'border-ink bg-ink text-bone' : 'border-transparent text-ink hover:border-line hover:bg-bone'
+                    on ? 'border-ink bg-ink text-bone' : 'border-transparent text-ink hover:border-line hover:bg-sand/40'
                   }`}
                 >
                   {c.name}

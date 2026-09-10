@@ -7,8 +7,10 @@ import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { createClient } from '@/lib/supabase/client';
 import { PARTNER_URL, TOUR_ADMIN_URL } from '@/lib/urls';
 
+// The signed-out CTA is the brand-orange pill in both tones — it is the one
+// thing on the bar that is meant to be pressed.
 const ctaClass =
-  'whitespace-nowrap rounded-lg bg-flame px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-label text-white transition-colors hover:bg-ember sm:px-5 sm:py-2.5';
+  'flex min-h-[44px] items-center whitespace-nowrap rounded-full bg-flame px-5 py-2.5 font-mono text-[13px] font-semibold text-white transition-colors hover:bg-ember';
 
 type Account = { email: string; role: string };
 
@@ -32,7 +34,12 @@ type Account = { email: string; role: string };
  * gets nothing extra and one wasted round trip; that is the right trade for not
  * dragging the whole navbar onto the server.
  */
-export default function UserMenu() {
+export default function UserMenu({
+  tone = 'dark',
+}: {
+  /** Matches the navbar it sits in: ink plate or white bar. */
+  tone?: 'light' | 'dark';
+} = {}) {
   const router = useRouter();
   const [account, setAccount] = useState<Account | null>(null);
   const [open, setOpen] = useState(false);
@@ -113,8 +120,13 @@ export default function UserMenu() {
 
   const isStaff = account.role === 'admin' || account.role === 'agent';
   const isPartner = account.role === 'partner';
+  // The signed-in trigger follows the bar; the panel is white in both tones.
+  const triggerClass =
+    tone === 'light'
+      ? 'border-line text-[13px] font-medium text-ink hover:border-ember hover:text-ember'
+      : 'border-bone/25 text-[11px] uppercase tracking-label text-bone hover:border-flame hover:text-white';
   const itemClass =
-    'flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-[13px] text-ink transition-colors hover:bg-bone';
+    'flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-[13px] text-ink transition-colors hover:bg-sand/40';
 
   return (
     <div ref={boxRef} className="relative">
@@ -123,7 +135,7 @@ export default function UserMenu() {
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex items-center gap-1.5 rounded-lg border border-bone/25 px-3 py-2 font-mono text-[11px] uppercase tracking-label text-bone transition-colors hover:border-flame hover:text-white sm:px-3.5"
+        className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 font-mono transition-colors sm:px-3.5 ${triggerClass}`}
       >
         <span className="hidden max-w-[14ch] truncate sm:inline">{account.email}</span>
         <span className="sm:hidden">Account</span>
@@ -134,7 +146,7 @@ export default function UserMenu() {
         <div
           role="menu"
           aria-label="Account"
-          className="absolute right-0 z-50 mt-2 w-60 overflow-hidden rounded-card border border-line bg-paper shadow-lift-panel"
+          className="absolute right-0 z-50 mt-2 w-60 overflow-hidden rounded-xl border border-line bg-white shadow-lift-panel"
         >
           <p className="truncate border-b border-line px-4 py-2.5 font-mono text-[10px] uppercase tracking-label text-stone">
             {account.email}

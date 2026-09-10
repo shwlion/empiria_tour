@@ -49,6 +49,27 @@ person you are working with may have a reason to jump the queue, and items 2 and
 
 ## Done since this list was last cut
 
+**The redesign — "Look B, Postcard" — is on the landing page (8 Sep).**
+White ground, brand-orange buttons, teal secondary, new type; the token
+*names* in `app/globals.css` stayed, so every page inherited it. The hero is
+headline + search beside a **postcard deck**: four illustrative cards (no
+dates, seats or prices — content, not inventory) in a leaning 3D stack that
+swaps itself, a dependency-free Web Animations port of the GSAP CardSwap
+component. Tapping a postcard expands its photo into the hero's full-screen
+background (scroll locked, page inert, ✕/Escape returns). Migration **0012**,
+applied 8 Sep, adds `showcase_cards` (RLS: anon reads published; proven by a
+probe); the admin console edits them under Content → Showcase; types were
+regenerated and copied to all three repos. Below the hero: a month strip
+(`?month=`), stamped tour cards, destinations, "How booking works", scroll
+reveals. Verified in headless Chrome at 1440 and 390: open/swap/close, focus,
+inert, no console errors, no overflow. Two pre-existing defects found on the
+way and fixed: `formatDateRange` hydrated with a text mismatch on every tour
+page (Bun's and Chrome's `Intl.formatRange` disagree about the dash), and the
+admin hard-coded `empiriatours.com` in two places (now `lib/storefront.ts`,
+overridable with `NEXT_PUBLIC_TOUR_URL`). The showcase placeholder photos in
+`public/showcase/` are Elevsoft stand-ins under §2.1.
+
+
 **The RPCs anon could call.** Migration **0011, applied 4 Sep.** Ten SECURITY
 DEFINER functions were executable by `anon` — which on Supabase means by
 anybody, since the anon key ships in the browser bundle and PostgREST exposes

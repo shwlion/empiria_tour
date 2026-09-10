@@ -9,6 +9,7 @@ import TourCard from '@/components/tours/TourCard';
 import SearchBar, { type DestinationOption } from '@/components/tours/SearchBar';
 import FilterRail, { SortSelect } from '@/components/tours/FilterRail';
 import { absoluteUrl } from '@/lib/seo';
+import { monthToRange } from '@/lib/months';
 import {
     getCategories,
     getCollections,
@@ -35,17 +36,6 @@ function flatten(nodes: DestinationNode[], depth = 0): DestinationOption[] {
         { path: n.path, name: n.name, depth },
         ...flatten(n.children, depth + 1),
     ]);
-}
-
-/** A month like "2027-07" becomes the inclusive range that covers it. */
-function monthToRange(month?: string) {
-    if (!month || !/^\d{4}-\d{2}$/.test(month)) return {};
-    const [y, m] = month.split('-').map(Number);
-    const last = new Date(Date.UTC(y, m, 0)).getUTCDate();
-    return {
-        departingFrom: `${month}-01`,
-        departingTo: `${month}-${String(last).padStart(2, '0')}`,
-    };
 }
 
 function toFilters(p: Params): SearchFilters {
