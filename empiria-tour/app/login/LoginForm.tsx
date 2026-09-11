@@ -108,7 +108,7 @@ export default function LoginForm() {
         </span>
         <Image
           src="/logo.png"
-          alt="Empiria Tour"
+          alt="Empiria Tours"
           width={1507}
           height={522}
           priority
