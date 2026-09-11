@@ -296,11 +296,9 @@ function Flow({ context, initialParty, initialRoomTypeId, initialExtras }: Booki
       setPromotionNote(null);
       return;
     }
-    const found = await applyPromotionAction(code, context.package.id, context.currency);
-    setPromotion(found);
-    setPromotionNote(
-      found ? `${found.code} applied.` : 'That code is not valid for this booking.'
-    );
+    const found = await applyPromotionAction(code, context.package.id, context.currency, draft.lead.email);
+    setPromotion(found.promotion);
+    setPromotionNote(found.promotion ? `${found.promotion.code} applied.` : found.reason);
   }
 
   // ── render ──────────────────────────────────────────────────────────────

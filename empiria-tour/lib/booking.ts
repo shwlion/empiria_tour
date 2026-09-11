@@ -28,6 +28,7 @@ import {
   type Selection,
   type Quote,
   type Party,
+  type PromotionInput,
 } from '@/lib/pricing';
 
 if (typeof window !== 'undefined') {
@@ -433,7 +434,10 @@ export async function createBooking(draft: BookingDraft): Promise<CreateBookingR
   }
 
   const promotion = draft.promotionCode
-    ? await lookupPromotion(draft.promotionCode, context.package.id, draft.currency)
+    ? await lookupPromotion(draft.promotionCode, context.package.id, draft.currency, {
+        userId: draft.userId,
+        email: draft.lead.email,
+      })
     : null;
 
   const selection: Selection = {
@@ -526,49 +530,101 @@ export async function createBooking(draft: BookingDraft): Promise<CreateBookingR
 }
 
 /**
- * Look up a promotion code.
+ * Look up a promotion code and say whether this traveller may use it.
  *
  * Deliberately server-side only: `promotions` has no public read policy, so
- * codes cannot be enumerated from a browser. An invalid or expired code returns
- * null rather than an error — the price simply does not change, and the flow
- * says so.
+ * codes cannot be enumerated from a browser. A code that does not apply comes
+ * back with a `reason` rather than an error — the price simply does not change,
+ * and the flow says why.
+ *
+ * Every rule here is courtesy. The one that holds is `check_promotion`, which
+ * `create_booking` calls under a row lock (migration 0015); this exists so the
+ * screen can say "you have already used that code" while it is being typed
+ * rather than after the traveller has filled in four steps. If the two ever
+ * disagree, the database wins and `friendly()` shows its sentence.
  */
-export async function lookupPromotion(
+export type PromotionLookup = {
+  promotion: PromotionInput | null;
+  /** Why it did not apply, in a sentence for the traveller. Null when it did. */
+  reason: string | null;
+};
+
+export async function evaluatePromotion(
   code: string,
   packageId: string,
-  currency: string
-): Promise<{ id: string; code: string; discountType: 'percent' | 'fixed'; discountValue: number } | null> {
+  currency: string,
+  who: { userId?: string | null; email?: string | null } = {}
+): Promise<PromotionLookup> {
   const db = getSupabaseAdmin();
-  if (!db) return null;
+  const refused = (reason: string): PromotionLookup => ({ promotion: null, reason });
+  if (!db) return refused('Promotion codes are not available right now.');
 
   const { data: promo } = await db
     .from('promotions')
-    .select('id, code, discount_type, discount_value, currency, valid_from, valid_until, usage_limit, usage_count, status')
+    .select(
+      'id, code, discount_type, discount_value, currency, valid_from, valid_until, usage_limit, usage_count, per_user_limit, status'
+    )
     .ilike('code', code.trim())
     .maybeSingle();
 
-  if (!promo || promo.status !== 'active') return null;
+  if (!promo || promo.status !== 'active') return refused('That code is not valid for this booking.');
 
   const now = new Date();
-  if (promo.valid_from && new Date(promo.valid_from) > now) return null;
-  if (promo.valid_until && new Date(promo.valid_until) < now) return null;
-  if (promo.usage_limit != null && promo.usage_count >= promo.usage_limit) return null;
+  if (promo.valid_from && new Date(promo.valid_from) > now) return refused('That code is not valid yet.');
+  if (promo.valid_until && new Date(promo.valid_until) < now) return refused('That code has expired.');
+  if (promo.usage_limit != null && promo.usage_count >= promo.usage_limit) {
+    return refused('That code has been used as many times as it allows.');
+  }
   // A fixed discount is denominated; a percentage travels between currencies.
-  if (promo.discount_type === 'fixed' && promo.currency !== currency) return null;
+  if (promo.discount_type === 'fixed' && promo.currency !== currency) {
+    return refused('That code is not valid in this currency.');
+  }
 
   // No rows in promotion_packages means the promotion applies everywhere.
   const { data: scope } = await db
     .from('promotion_packages')
     .select('package_id')
     .eq('promotion_id', promo.id);
-  if (scope?.length && !scope.some((s) => s.package_id === packageId)) return null;
+  if (scope?.length && !scope.some((s) => s.package_id === packageId)) {
+    return refused('That code is not valid for this tour.');
+  }
+
+  // Per person: the account when there is one, else the lead email — both,
+  // because a guest booking becomes an account later.
+  if (promo.per_user_limit != null && (who.userId || who.email)) {
+    const filters: string[] = [];
+    if (who.userId) filters.push(`user_id.eq.${who.userId}`);
+    if (who.email) filters.push(`lead_email.ilike.${who.email.trim().toLowerCase()}`);
+    const { count } = await db
+      .from('bookings')
+      .select('id', { count: 'exact', head: true })
+      .eq('promotion_id', promo.id)
+      .neq('status', 'cancelled')
+      .or(filters.join(','));
+    if ((count ?? 0) >= promo.per_user_limit) {
+      return refused('You have already used that code.');
+    }
+  }
 
   return {
-    id: promo.id,
-    code: promo.code,
-    discountType: promo.discount_type as 'percent' | 'fixed',
-    discountValue: promo.discount_value,
+    promotion: {
+      id: promo.id,
+      code: promo.code,
+      discountType: promo.discount_type as 'percent' | 'fixed',
+      discountValue: promo.discount_value,
+    },
+    reason: null,
   };
+}
+
+/** The promotion alone, for callers that only need to price with it. */
+export async function lookupPromotion(
+  code: string,
+  packageId: string,
+  currency: string,
+  who: { userId?: string | null; email?: string | null } = {}
+): Promise<PromotionInput | null> {
+  return (await evaluatePromotion(code, packageId, currency, who)).promotion;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
@@ -590,6 +646,9 @@ function friendly(message: string | undefined): string {
     'party grew to',
     'traveller list does not match',
     'do not reconcile',
+    // check_promotion (0015). Every one is a sentence written to be shown.
+    'promotion code',
+    'discount does not match',
   ];
   return known.some((k) => message.includes(k))
     ? message

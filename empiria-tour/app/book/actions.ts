@@ -6,11 +6,12 @@ import {
   claimSeats,
   createBooking,
   extendHold,
-  lookupPromotion,
+  evaluatePromotion,
   releaseHold,
   type BookingDraft,
   type CreateBookingResult,
   type HoldResult,
+  type PromotionLookup,
 } from '@/lib/booking';
 import { getUser } from '@/lib/auth';
 
@@ -73,15 +74,21 @@ export async function releaseHoldAction(holdId: string): Promise<boolean> {
  * Validate a promotion code without revealing anything about codes that do not
  * apply. `promotions` has no public read policy precisely so codes cannot be
  * enumerated from the browser, and this action keeps that true: one code in,
- * one yes or no out.
+ * one answer out — the promotion, or one sentence saying why not.
+ *
+ * Who is asking is read here, not accepted from the client: the per-person
+ * limit is checked against the signed-in account and the lead email the
+ * traveller has typed so far.
  */
 export async function applyPromotionAction(
   code: string,
   packageId: string,
-  currency: string
-): Promise<{ id: string; code: string; discountType: 'percent' | 'fixed'; discountValue: number } | null> {
-  if (!code.trim()) return null;
-  return lookupPromotion(code, packageId, currency);
+  currency: string,
+  leadEmail?: string | null
+): Promise<PromotionLookup> {
+  if (!code.trim()) return { promotion: null, reason: null };
+  const user = await getUser();
+  return evaluatePromotion(code, packageId, currency, { userId: user?.id ?? null, email: leadEmail ?? null });
 }
 
 export type SubmitInput = Omit<

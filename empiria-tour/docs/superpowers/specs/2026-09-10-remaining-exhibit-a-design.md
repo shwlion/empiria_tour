@@ -110,21 +110,37 @@ booking, and amendment is a booking whose numbers changed.
 
 ## Promotions
 
-Tables exist (`promotions`, `promotion_packages`) and nothing reads them.
+*Corrected 11 September.* The audit said "no UI or validation anywhere". Wrong:
+the storefront already had the code field, a server-side lookup, and the
+pricing engine applying the discount to the subtotal before fees and tax —
+with assertions. What was missing was narrower and worse: `usage_count` was
+never written, `per_user_limit` was never read, the admin screen did not
+exist, and `create_booking` trusted whatever `promotion_id` and
+`discount_cents` the payload carried.
 
 **The discount applies to the subtotal — base plus occupancy plus extras —
 before taxes and fees.** Not cosmetic: §4.6(b) subtracts *taxes collected and
 remitted* from Net Platform Profit, so tax computed on an undiscounted total
 would overstate the remittance and mis-state your own revenue share in the
-direction that costs you.
+direction that costs you. Already true in `lib/pricing.ts`; now also checked
+by the database.
 
-`usage_count` increments **inside `create_booking`**, in the same transaction
-as the booking. In application code, two people racing the last use of a
-single-use code both win.
+**Enforcement is `check_promotion`, under a row lock, called from
+`create_booking`** (migration 0015). It re-checks status, window, scope,
+currency, both limits, and recomputes the discount from the subtotal. Two
+people racing the last use of a code serialise on the lock; the second is
+refused. Everything the storefront and console check before that is courtesy,
+so the person is told early — the database is what holds.
 
-Validation is one pure function in `lib/pricing.ts`, extending its 46
-assertions, so the panel, the booking flow and the server agree by construction
-rather than by three implementations happening to match.
+**`usage_count` is a trigger on `bookings`, not an increment.** A stored count
+incremented in one place must be decremented in every place a booking stops
+counting — abandon, expiry, and group 3's cancellation — and one of those
+would be forgotten. A recomputing trigger cannot be. A cancelled booking
+releases its use; a refunded one does not.
+
+**A code any booking names is switched off, never deleted.**
+`bookings.promotion_id` is `on delete set null`; deleting would erase from the
+booking's history the fact that a discount was applied.
 
 ## Part F, where it needs an account Empiria does not have
 
@@ -153,10 +169,64 @@ service, privacy policy, booking conditions, cancellation policy, about,
 contact, FAQ*. Four exist. The missing three are **about, contact, FAQ**. No
 guessing required; that item is unblocked.
 
+## Group 3a — the revenue share, at source
+
+*Added 11 September, at the client's direction: the Tours payment structure
+must match the Events platform's, because the 20% is per transaction.*
+
+**What Events does.** Every sale lands on Empiria's Stripe account and the
+webhook pushes Elevsoft's cut out on that same transaction: an *intent ledger*
+is written to the order before any money moves (a failed write throws, so
+Stripe retries and nothing is sent), then `stripe.transfers.create` to
+`ELEVSOFT_STRIPE_ACCOUNT_ID` under an idempotency key, the transfer id
+recorded. On `charge.refunded` the transfer is reversed proportionally to the
+newly-refunded delta, clamped to what is still reversible, keyed on the Stripe
+event id; failures go to a `failed_reversals` ledger. The admin revenue page
+shows the Elevsoft share as a line.
+
+**Where it does not transplant.** Events' share base — the service fee — is
+known at checkout. Tours' base is §4.6(b)'s Net Platform Profit, whose
+largest term is **supplier cost**, which Empiria enters after the fact. And
+§4.6(d) describes monthly remittance by Empiria, not transfer at source.
+
+**Decision (client, 11 September): per charge, once supplier cost is known.**
+
+- The Events machinery — ledger first, idempotent transfer, proportional
+  reversal, `failed_reversals`, console visibility — is built in Tours.
+- **Supplier cost moves to the package** (`packages.supplier_cost_cents`),
+  where §2.1(b) puts it, stamped onto each booking at creation and still
+  editable per booking. For a costed package, NPP is known when a payment
+  lands, and that charge's transfer fires then — 20% × (this payment − its
+  processor fee − its share of tax − its pro-rata share of supplier cost).
+- A payment on an **uncosted** package accrues in the ledger and does not
+  transfer. The console shows the gap: *"N bookings owe a revenue-share
+  transfer; their package has no supplier cost."* Elevsoft's payment then
+  depends on Empiria meeting an obligation the contract already gives it,
+  rather than on Empiria remembering a favour.
+- Refunds reverse per charge, from the Events code path. Promotions need
+  nothing: the discount is already inside `total_cents`, so gross is
+  post-discount by construction.
+- B5's monthly statement becomes a **readout of this ledger** — the same
+  numbers the transfers used — which is what makes §4.6(e) and §4.6(f)
+  trivially consistent.
+- Tours is on the **same Stripe platform account as Events** (client, 11
+  September), so the existing `ELEVSOFT_STRIPE_ACCOUNT_ID` connected account
+  is reused as-is. Everything is env-gated regardless: absent the id, the
+  ledger accrues and no transfer is attempted.
+
+**Contract note.** §4.6(d) should be amended to say remittance is by transfer
+at source, or "may be". The agreement is still a draft for discussion; this
+is cheap now and expensive after signature.
+
+This sits **before group 3's refunds**, because refund reversal has to be
+designed together with refund issuance.
+
 ## Discipline that applies to every group
 
-- Three migrations — `0014_cancellation_and_amendment`, `0015_ad_placements`,
-  `0016_saved_travellers` — each proved with a `do $$ … $$` harness and its
+- Migrations, renumbered after 0014 took the static-page seed:
+  `0015_promotion_usage` (done), `0016_revenue_share` (group 3a),
+  `0017_cancellation_and_amendment`, `0018_ad_placements`,
+  `0019_saved_travellers` — each proved with a `do $$ … $$` harness and its
   test rows deleted.
 - `lib/database.types.ts` regenerated and copied to **all three repos in the
   same commit** as the migration. It has drifted five times.
@@ -169,15 +239,16 @@ guessing required; that item is unblocked.
 
 | # | Group | Migration | Notes |
 |---|---|---|---|
-| 1 | `sitemap.ts`, `robots.ts`, about/contact/FAQ | — | Names settled above |
-| 2 | Promotion codes (A5, B6, pricing) | — | Tables exist |
-| 3 | B3 tail + A7 cancellation | 0014 | Unlocks 4 Part C triggers |
+| 1 | `sitemap.ts`, `robots.ts`, about/contact/FAQ | 0014 | Done |
+| 2 | Promotion codes (A5, B6, pricing) | 0015 | Done |
+| 3a | Revenue share at source (see above) | 0016 | Before 3 |
+| 3 | B3 tail + A7 cancellation | 0017 | Unlocks 4 Part C triggers |
 | 4 | B4 Customers | — | |
 | 5 | B5 Reporting + Revenue Share | — | Lights up when supplier costs are entered |
 | 6 | B6 remainder — destinations, collections, receipt template, staff invitation | — | |
-| 7 | Ad placements | 0015 | |
+| 7 | Ad placements | 0018 | |
 | 8 | B2 bulk departures by recurrence | — | |
-| 9 | A8 saved traveller profiles | 0016 | |
+| 9 | A8 saved traveller profiles | 0019 | |
 | 10 | Consent banner, analytics seam, bot-check seam | — | |
 
 Group 3 sits early among the substantial ones because it is the largest
