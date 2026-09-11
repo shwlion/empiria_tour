@@ -73,7 +73,7 @@ export default async function Footer() {
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-10 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-10 md:grid-cols-3 lg:grid-cols-5">
             {/* Travel */}
             <div className="flex flex-col gap-3">
               <span className={headClass}>Travel</span>
@@ -97,9 +97,18 @@ export default async function Footer() {
               <Link href="/privacy" className={linkClass}>Privacy policy</Link>
             </div>
 
+            {/* The rest of B6's seven. Every one of them has a row, so none of
+                these links 404 — which is the only reason they are here. */}
+            <div className="flex flex-col gap-3">
+              <span className={headClass}>Company</span>
+              <Link href="/about" className={linkClass}>About us</Link>
+              <Link href="/faq" className={linkClass}>FAQ</Link>
+            </div>
+
             {/* Contact + social, both configurable */}
             <div className="flex flex-col gap-3">
               <span className={headClass}>Contact</span>
+              <Link href="/contact" className={linkClass}>Contact us</Link>
               {settings?.contact_email && (
                 <a href={`mailto:${settings.contact_email}`} className={linkClass}>
                   {settings.contact_email}
