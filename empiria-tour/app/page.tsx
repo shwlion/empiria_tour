@@ -5,6 +5,8 @@ import { ArrowRight, Clock, Search, ShieldCheck } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import TourCard from '@/components/tours/TourCard';
+import EventsSpotlight from '@/components/home/EventsSpotlight';
+import { getUpcomingEvents } from '@/lib/events';
 import HomeHero from '@/components/home/HomeHero';
 import HeroIntro from '@/components/home/HeroIntro';
 import Reveal from '@/components/home/Reveal';
@@ -155,7 +157,7 @@ export default async function TourHome({
     const activeMonth = months.find((m) => m.value === month) ?? null;
 
     // Everything degrades to empty when Supabase is unset, so the shell still renders.
-    const [featured, results, categories, collections, tree, tiles, settings, footerNotices, showcase] =
+    const [featured, results, categories, collections, tree, tiles, settings, footerNotices, showcase, events] =
         await Promise.all([
             getFeaturedPackages(currency, 6),
             searchPackages(
@@ -169,6 +171,8 @@ export default async function TourHome({
             getPlatformSettings(),
             getDisclosures('footer'),
             getShowcaseCards(),
+            // The sister product's public API; empty if it is unreachable.
+            getUpcomingEvents(6),
         ]);
 
     const destinationOptions = flatten(tree);
@@ -337,6 +341,9 @@ export default async function TourHome({
             </section>
 
             <HowBookingWorks holdMinutes={settings?.hold_minutes ?? 20} />
+
+            {/* ── Empiria Events (A2: promotional placement) ───────────────── */}
+            <EventsSpotlight events={events} />
 
             {/* ── Trust band (A2) ──────────────────────────────────────────── */}
             <section className="mx-auto w-full max-w-6xl px-5">

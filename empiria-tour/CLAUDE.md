@@ -73,6 +73,16 @@ threads it into its menus. The footer is white sitewide.
   left column shows that postcard's words and one "Browse all tours" link; ✕
   or Escape flies it back and returns focus. `components/home/takeover.ts`
   holds the DOM chores. Reduced motion switches states instantly.
+- **`EventsSpotlight`** — "Looking for something different?" — is Exhibit A
+  A2's promotional placement for Empiria live events, in live form: six
+  real upcoming events read from the Events platform's **public API**
+  (`${APEX_URL}/api/events/by-culture`, `lib/events.ts`, cached 15 min),
+  never from the Empiria-01 database. City chips and cards link to the
+  Events shop in a new tab. With the API unreachable the section keeps its
+  words and its link and shows no grid. Dates are composed in the event's
+  own timezone with the day period spelled by hand — the same Bun/Chrome
+  ICU disagreement `formatDateRange` works around. B6's admin-managed
+  placement (schedule, active state, editable copy) is still to build.
 - Below: `MonthStrip` (`?month=YYYY-MM` filters the catalogue; `lib/months.ts`),
   the curated grid (`TourCard` carries a lemon date stamp), destinations,
   "How booking works", the trust band. `Reveal` is the single
