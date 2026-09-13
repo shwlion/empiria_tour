@@ -225,8 +225,8 @@ designed together with refund issuance.
 
 - Migrations, renumbered after 0014 took the static-page seed:
   `0015_promotion_usage` (done), `0016_revenue_share` (group 3a),
-  `0017_cancellation_and_amendment`, `0018_ad_placements`,
-  `0019_saved_travellers` — each proved with a `do $$ … $$` harness and its
+  `0017_cancellation_and_amendment`, `0018` (freed: no ad-placements table),
+  `0019_saved_travellers` (done) — each proved with a `do $$ … $$` harness and its
   test rows deleted.
 - `lib/database.types.ts` regenerated and copied to **all three repos in the
   same commit** as the migration. It has drifted five times.
@@ -246,10 +246,10 @@ designed together with refund issuance.
 | 4 | B4 Customers | — | |
 | 5 | B5 Reporting + Revenue Share | — | Lights up when supplier costs are entered |
 | 6 | B6 remainder — destinations, collections, receipt template, staff invitation | — | |
-| 7 | Ad placements | 0018 | |
+| 7 | Ad placements | — | Done (13 Sep): the client accepted the live Empiria Events section on the home page (`EventsSpotlight`, real events from the Events API) as A2's placement; no `ad_placements` table and no admin editor for it |
 | 8 | B2 bulk departures by recurrence | — | |
-| 9 | A8 saved traveller profiles | 0019 | |
-| 10 | Consent banner, analytics seam, bot-check seam | — | |
+| 9 | A8 saved traveller profiles | 0019 | Done (13 Sep) |
+| 10 | Consent banner, analytics seam, bot-check seam | — | Done (13 Sep): `lib/analytics.ts`, `lib/botcheck.ts` + `components/BotCheck.tsx` |
 
 Group 3 sits early among the substantial ones because it is the largest
 Acceptance risk and unlocks four of the six unwired Part C triggers as a side

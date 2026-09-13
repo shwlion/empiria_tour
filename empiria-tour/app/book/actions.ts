@@ -14,6 +14,8 @@ import {
   type PromotionLookup,
 } from '@/lib/booking';
 import { getUser } from '@/lib/auth';
+import { BOT_CHECK_MESSAGE, verifyBotCheck } from '@/lib/botcheck';
+import { profilesFromTravellers, rememberTravellers } from '@/lib/savedTravellers';
 
 /**
  * Server actions for the booking flow.
@@ -94,7 +96,12 @@ export async function applyPromotionAction(
 export type SubmitInput = Omit<
   BookingDraft,
   'sessionToken' | 'userId' | 'ipAddress' | 'userAgent'
->;
+> & {
+  /** A8: remember these travellers on the signed-in account. Ignored for a guest. */
+  saveTravellers?: boolean;
+  /** Part F: the Turnstile token, when the widget is configured. */
+  botToken?: string | null;
+};
 
 /**
  * Create the booking.
@@ -105,6 +112,7 @@ export type SubmitInput = Omit<
  * being evidence; a client-supplied one would be evidence of nothing.
  */
 export async function submitBookingAction(input: SubmitInput): Promise<CreateBookingResult> {
+  const { saveTravellers, botToken, ...draft } = input;
   const token = await bookingSession();
   const user = await getUser();
   const h = await headers();
@@ -112,11 +120,23 @@ export async function submitBookingAction(input: SubmitInput): Promise<CreateBoo
   const forwarded = h.get('x-forwarded-for');
   const ip = forwarded?.split(',')[0]?.trim() || h.get('x-real-ip') || null;
 
-  return createBooking({
-    ...input,
+  // A5 / Part F: "bot protection on submission". Passes untouched until
+  // Empiria sets the Turnstile keys; refuses without a token once they have.
+  const bot = await verifyBotCheck(botToken, ip);
+  if (!bot.ok) return { ok: false, reason: 'failed', message: BOT_CHECK_MESSAGE };
+
+  const result = await createBooking({
+    ...draft,
     sessionToken: token,
     userId: user?.id ?? null,
     ipAddress: ip,
     userAgent: h.get('user-agent'),
   });
+
+  // A8: the booking exists; remembering who was on it is best effort and
+  // keyed on the server's user, never on anything the client sent.
+  if (result.ok && user && saveTravellers) {
+    await rememberTravellers(user.id, profilesFromTravellers(draft.travellers));
+  }
+  return result;
 }

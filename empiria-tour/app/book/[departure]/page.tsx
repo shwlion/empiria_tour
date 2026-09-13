@@ -5,6 +5,9 @@ import Footer from '@/components/Footer';
 import BookingFlow from '@/components/booking/BookingFlow';
 import { getBookingContext } from '@/lib/booking';
 import { getDefaultCurrency } from '@/lib/catalogue';
+import { getUser } from '@/lib/auth';
+import { getProfile } from '@/lib/account';
+import { getSavedTravellers } from '@/lib/savedTravellers';
 
 /**
  * A5 — the booking flow for one departure.
@@ -41,7 +44,17 @@ export default async function BookPage({
   const sp = await searchParams;
 
   const currency = one(sp.currency) ?? (await getDefaultCurrency());
-  const context = await getBookingContext(departure, currency);
+  const user = await getUser();
+  const [context, profile, savedTravellers] = await Promise.all([
+    getBookingContext(departure, currency),
+    user ? getProfile(user.id) : null,
+    user ? getSavedTravellers(user.id) : [],
+  ]);
+  // A8: the account pre-fills the lead traveller and offers the saved people.
+  // A guest gets neither and books exactly as before.
+  const initialLead = user
+    ? { name: profile?.fullName ?? '', email: user.email ?? profile?.email ?? '', phone: profile?.phone ?? '' }
+    : null;
 
   if (!context) {
     return (
@@ -97,6 +110,9 @@ export default async function BookPage({
           initialParty={initialParty}
           initialRoomTypeId={initialRoomTypeId}
           initialExtras={initialExtras}
+          savedTravellers={savedTravellers}
+          initialLead={initialLead}
+          signedIn={!!user}
         />
       </main>
       <Footer />

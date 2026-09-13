@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 /**
- * The two account screens, A7 and A8.
+ * The account screens: A7 (bookings) and A8 (saved travellers, profile).
  *
  * A server component: which tab is active is known at render time from the page
  * that draws it, so there is nothing here worth shipping `usePathname` and a
@@ -9,10 +9,11 @@ import Link from 'next/link';
  */
 const TABS = [
   { key: 'bookings', href: '/account/bookings', label: 'My bookings' },
+  { key: 'travellers', href: '/account/travellers', label: 'Travellers' },
   { key: 'profile', href: '/account', label: 'Account' },
 ] as const;
 
-export default function AccountTabs({ active }: { active: 'bookings' | 'profile' }) {
+export default function AccountTabs({ active }: { active: 'bookings' | 'travellers' | 'profile' }) {
   return (
     <nav aria-label="Account" className="mt-5 flex gap-1 border-b border-line">
       {TABS.map((t) => (

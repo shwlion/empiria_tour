@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
+import { track } from '@/lib/analytics';
 
 export type DestinationOption = { path: string; name: string; depth: number };
 
@@ -74,6 +75,8 @@ export default function SearchBar({
     if (destination) params.set('destination', destination);
     if (month) params.set('month', month);
     if (travellers && travellers !== 2) params.set('travellers', String(travellers));
+    // Part F: goes nowhere without consent and a provider.
+    track('search', { search_term: [destination, month].filter(Boolean).join(' ') || 'anywhere', travellers });
     router.push(`/tours${params.toString() ? `?${params}` : ''}`);
   }
 

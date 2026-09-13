@@ -11,6 +11,7 @@ import { getUser } from '@/lib/auth';
 import { isStripeConfigured, isTestMode } from '@/lib/stripe';
 import PaymentPanel from '@/components/booking/PaymentPanel';
 import AddToCalendar from '@/components/booking/AddToCalendar';
+import PurchaseEvent from '@/components/booking/PurchaseEvent';
 import { isClosed } from '@/lib/bookingStatus';
 import { formatPrice, formatDateRange } from '@/lib/money';
 
@@ -176,6 +177,18 @@ export default async function BookingPage({
               ))}
             </ul>
           </>
+        )}
+
+        {/* Part F: the conversion event, on the return from Checkout only. */}
+        {paid === '1' && (
+          <PurchaseEvent
+            reference={booking.reference}
+            currency={booking.currency}
+            totalCents={booking.totals.totalCents}
+            packageSlug={booking.package.slug}
+            packageTitle={booking.package.title}
+            seats={booking.party.adults + booking.party.children}
+          />
         )}
 
         <PaymentPanel

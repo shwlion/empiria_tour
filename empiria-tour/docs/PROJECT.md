@@ -44,10 +44,33 @@ person you are working with may have a reason to jump the queue, and items 2 and
 7. **Installments.** The largest single item, and it changes the payment
    architecture rather than extending it. **Do not start before the commercial
    question in item 3 is answered** — it may not be paid work.
-8. **The Part F sweep** — sitemap, robots, real bot protection, daily backups
-   (§6.1, needs a paid Supabase tier), error monitoring, LCP.
+8. **The rest of Part F** — daily backups (§6.1, needs a paid Supabase tier),
+   error monitoring, LCP. Sitemap, robots, bot protection and analytics are
+   built; the last two wait only for Empiria's keys.
 
 ## Done since this list was last cut
+
+**A8 — saved traveller profiles (13 Sep).** `saved_travellers` (migration
+0019, proved against the live database inside the migration: one row per
+person per account with `UNIQUE NULLS NOT DISTINCT`, a cap of twenty by
+trigger, RLS as a signed-in traveller, closure erasing the list and leaving
+another account's alone). `/account/travellers` edits the list through the
+user's own client; the booking page offers it on every traveller card, starts
+the lead traveller from the profile, and — ticked by default for a signed-in
+traveller — remembers the booking's travellers afterwards, updating the ones
+already saved and adding the rest up to the cap. `lib/savedTravellers.ts`,
+tested.
+
+**Part F seams (13 Sep).** `lib/botcheck.ts` + `components/BotCheck.tsx`:
+Cloudflare Turnstile on the contact form, the partner application and the
+booking flow's last step, live once `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and
+`TURNSTILE_SECRET_KEY` are set; unset, every form behaves as before and the
+verifier says it checked nothing. Proved against Cloudflare's always-pass and
+always-fail dummy secrets. `lib/analytics.ts`: `track()` sends `search`,
+`begin_checkout`, `purchase` and `generate_lead` to whichever of gtag.js or a
+GTM container is on the page — which is nothing until the visitor accepts the
+consent banner *and* Empiria sets an id. Tested; page views are left to the
+provider so nothing is counted twice.
 
 **The redesign — "Look B, Postcard" — is on the landing page (8 Sep).**
 White ground, brand-orange buttons, teal secondary, new type; the token
@@ -209,8 +232,9 @@ form or unpublish until it is filled.
 - **Part C's unwired triggers** — 7 of 13 are wired; four need their triggering
   action (B3's tail), two need the installment schedule.
 - **A cron for `/api/email/tick`.** Nothing schedules it yet.
-- **Part F** — sitemap, robots, real bot protection, daily backups (§6.1, needs a
-  paid Supabase tier), error monitoring, LCP.
+- **Part F** — daily backups (§6.1, needs a paid Supabase tier), error
+  monitoring, LCP. Bot protection and analytics are seams that light up when
+  Empiria pastes a Turnstile key pair and a GTM or GA4 id (`.env.local.example`).
 - **Installments** — the largest single item. Storing a card at booking and
   charging it later with nobody present is a different Stripe integration, not
   an extension of the current one. Do not start before the commercial question
@@ -218,14 +242,19 @@ form or unpublish until it is filled.
 
 ## Module count against the revised Exhibit A
 
-**29 of 43.** Add-to-calendar and social sharing, the two Revision 1 additions
+**31 of 43.** Add-to-calendar and social sharing, the two Revision 1 additions
 that were code rather than content, are both built. Part A: 4 done, 4
-substantial, **none unstarted** — A7 and A8 are
-both complete, including closure. Part B: 1 done, 3
-substantial, 2 to start. Part C: machinery done, nothing sending. Part D:
-mechanism done, receipts done, wording left — every block renders on the
-receipt, and every one of them is empty until Empiria writes it. Part E: 2
-entities short (`ad_placements`, installment schedule). Part F: 3 done, 5 open.
+substantial, **none unstarted** — A7 and A8 are both complete, including
+closure and, since 13 Sep, saved traveller profiles (migration 0019) that
+pre-fill the booking flow. Part B: 1 done, 3 substantial, 2 to start. Part C:
+machinery done, nothing sending. Part D: mechanism done, receipts done,
+wording left — every block renders on the receipt, and every one of them is
+empty until Empiria writes it. Part E: 1 entity short (the installment
+schedule; the client accepted the live Events section as A2's placement, so
+no `ad_placements`). Part F: 5 done, 3 open — bot protection (Turnstile,
+`lib/botcheck.ts`) and analytics events (`lib/analytics.ts`) are built as
+seams and switch on with Empiria's keys; backups, error monitoring and LCP
+remain.
 
 ## Things that will bite you
 

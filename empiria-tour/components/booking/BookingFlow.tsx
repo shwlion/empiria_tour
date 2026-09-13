@@ -18,6 +18,9 @@ import {
 import Stepper from './Stepper';
 import QuoteSummary from './QuoteSummary';
 import DisclosureList from './DisclosureList';
+import BotCheck, { isBotCheckEnabled } from '@/components/BotCheck';
+import { track } from '@/lib/analytics';
+import type { SavedTraveller } from '@/lib/savedTravellers';
 import { CustomFieldInput, Field, NumberSelect, TextInput, fieldClass, labelClass } from './fields';
 
 /**
@@ -61,6 +64,8 @@ type Draft = {
   fieldValues: Record<string, string>;
   accepted: Record<string, boolean>;
   promotionCode: string;
+  /** A8: remember these travellers on the account after booking. Only offered when signed in. */
+  saveTravellers: boolean;
 };
 
 export type BookingFlowProps = {
@@ -68,6 +73,11 @@ export type BookingFlowProps = {
   initialParty: Party;
   initialRoomTypeId: string | null;
   initialExtras: Record<string, number>;
+  /** A8: the signed-in traveller's saved people, offered on every traveller card. Empty for a guest. */
+  savedTravellers: SavedTraveller[];
+  /** A8: the signed-in traveller's profile, which the lead traveller starts from. */
+  initialLead: { name: string; email: string; phone: string } | null;
+  signedIn: boolean;
 };
 
 export default function BookingFlow(props: BookingFlowProps) {
@@ -89,13 +99,23 @@ function FlowSkeleton() {
   );
 }
 
-function Flow({ context, initialParty, initialRoomTypeId, initialExtras }: BookingFlowProps) {
+function Flow({
+  context,
+  initialParty,
+  initialRoomTypeId,
+  initialExtras,
+  savedTravellers,
+  initialLead,
+  signedIn,
+}: BookingFlowProps) {
   const router = useRouter();
   const storageKey = `empiria_booking_draft_${context.departure.id}`;
 
   const [draft, setDraft] = useState<Draft>(() =>
-    restore(storageKey) ?? blankDraft(context, initialParty, initialRoomTypeId, initialExtras)
+    restore(storageKey) ?? blankDraft(context, initialParty, initialRoomTypeId, initialExtras, initialLead, signedIn)
   );
+  // Part F: the Turnstile token from the last step, when the widget is configured.
+  const [botToken, setBotToken] = useState<string | null>(null);
   const [hold, setHold] = useState<{ id: string; seats: number; expiresAt: string } | null>(null);
   const [holdError, setHoldError] = useState<string | null>(null);
   const [showErrors, setShowErrors] = useState(false);
@@ -129,6 +149,19 @@ function Flow({ context, initialParty, initialRoomTypeId, initialExtras }: Booki
       ),
     [context.pricing, draft, promotion, context.departure.seatsAvailable, hold?.seats]
   );
+
+  // Part F: one `begin_checkout` per arrival at the flow. Goes nowhere
+  // without consent and a provider (lib/analytics.ts).
+  const checkoutTracked = useRef(false);
+  useEffect(() => {
+    if (checkoutTracked.current) return;
+    checkoutTracked.current = true;
+    track('begin_checkout', {
+      currency: context.currency,
+      value: currentQuote.totalCents / 100,
+      items: [{ item_id: context.package.id, item_name: context.package.title, quantity: seats }],
+    });
+  }, [context.currency, context.package.id, context.package.title, currentQuote.totalCents, seats]);
 
   // ── persistence ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -269,6 +302,8 @@ function Flow({ context, initialParty, initialRoomTypeId, initialExtras }: Booki
         customFields: collectCustomFields(draft, context),
         acknowledgements: acknowledgedBlocks(draft, context),
         expectedTotalCents: currentQuote.totalCents,
+        saveTravellers: signedIn && draft.saveTravellers,
+        botToken,
       });
 
       if (result.ok) {
@@ -337,6 +372,8 @@ function Flow({ context, initialParty, initialRoomTypeId, initialExtras }: Booki
               problems={selectionProblems}
               seats={seats}
               headcount={headcount}
+              savedTravellers={savedTravellers}
+              signedIn={signedIn}
             />
           )}
 
@@ -361,7 +398,14 @@ function Flow({ context, initialParty, initialRoomTypeId, initialExtras }: Booki
           )}
 
           {draft.step === 3 && (
-            <StepTerms draft={draft} setDraft={setDraft} context={context} showErrors={showErrors} />
+            <StepTerms
+              draft={draft}
+              setDraft={setDraft}
+              context={context}
+              showErrors={showErrors}
+              onBotToken={setBotToken}
+              botResetKey={submitError}
+            />
           )}
 
           {stepBlocks.length > 0 && draft.step !== 3 && (
@@ -405,7 +449,7 @@ function Flow({ context, initialParty, initialRoomTypeId, initialExtras }: Booki
             <button
               type="button"
               onClick={next}
-              disabled={pending || (!canContinue && showErrors)}
+              disabled={pending || (!canContinue && showErrors) || (draft.step === 3 && isBotCheckEnabled && !botToken)}
               className="inline-flex items-center gap-2 rounded-field bg-flame px-6 py-3.5 font-mono text-[11px] font-bold uppercase tracking-label text-white transition-colors hover:bg-ember disabled:cursor-not-allowed disabled:bg-stone/40"
             >
               {pending && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />}
@@ -419,6 +463,11 @@ function Flow({ context, initialParty, initialRoomTypeId, initialExtras }: Booki
               ? 'Reserving holds your places while you pay. No card is charged at this step.'
               : 'You will not be charged until the final step.'}
           </p>
+          {draft.step === 3 && isBotCheckEnabled && !botToken && (
+            <p className="mt-2 text-[12px] leading-relaxed text-stone">
+              Confirming this is a person — one moment. If the check never finishes, reload the page.
+            </p>
+          )}
         </div>
 
         <aside className="lg:sticky lg:top-28 lg:self-start">
@@ -452,6 +501,8 @@ function StepTravellers({
   problems,
   seats,
   headcount,
+  savedTravellers,
+  signedIn,
 }: {
   draft: Draft;
   setDraft: React.Dispatch<React.SetStateAction<Draft>>;
@@ -461,8 +512,18 @@ function StepTravellers({
   problems: { field: string; message: string }[];
   seats: number;
   headcount: number;
+  savedTravellers: SavedTraveller[];
+  signedIn: boolean;
 }) {
   const maxSeats = Math.max(context.departure.seatsAvailable, seats);
+
+  // Which saved person a card currently holds, by the same (name, birthday)
+  // the list is keyed on — so the picker shows the pick, and editing the
+  // name afterwards clears it rather than lying.
+  const savedIdFor = (t: TravellerInput) =>
+    savedTravellers.find(
+      (s) => s.legalName === t.legalName.trim() && (s.dateOfBirth ?? null) === (t.dateOfBirth ?? null)
+    )?.id ?? '';
 
   return (
     <section>
@@ -576,6 +637,37 @@ function StepTravellers({
               {t.isLead ? 'Lead · ' : ''}
               {t.travellerType} {countWithinType(draft.travellers, i)}
             </p>
+            {savedTravellers.length > 0 && (
+              <div className="mt-3">
+                <Field id={`t-${t.position}-saved`} label="Saved traveller">
+                  <select
+                    id={`t-${t.position}-saved`}
+                    value={savedIdFor(t)}
+                    onChange={(e) => {
+                      const s = savedTravellers.find((x) => x.id === e.target.value);
+                      if (!s) return;
+                      setDraft((d) =>
+                        updateTraveller(d, t.position, {
+                          legalName: s.legalName,
+                          dateOfBirth: s.dateOfBirth,
+                          dietaryNotes: s.dietaryNotes,
+                          accessibilityNotes: s.accessibilityNotes,
+                        })
+                      );
+                    }}
+                    className={fieldClass}
+                  >
+                    <option value="">Choose from your list, or type below</option>
+                    {savedTravellers.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.legalName}
+                        {s.dateOfBirth ? ` · ${s.dateOfBirth}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+              </div>
+            )}
             <div className="mt-3 grid gap-4 sm:grid-cols-2">
               <Field
                 id={`t-${t.position}-name`}
@@ -608,6 +700,24 @@ function StepTravellers({
         {headcount} {headcount === 1 ? 'person' : 'people'} on this booking · {seats}{' '}
         {seats === 1 ? 'seat' : 'seats'} held.
       </p>
+
+      {signedIn && (
+        <label className="mt-5 flex items-start gap-2.5 text-[13.5px] leading-relaxed text-ink">
+          <input
+            type="checkbox"
+            checked={draft.saveTravellers}
+            onChange={(e) => setDraft((d) => ({ ...d, saveTravellers: e.target.checked }))}
+            className="mt-0.5 h-4 w-4 shrink-0 accent-flame"
+          />
+          <span>
+            Save these travellers to my account for next time.
+            <span className="block text-[12px] text-stone">
+              Names, dates of birth and any dietary or accessibility notes — editable under Account →
+              Travellers. Never the booking itself.
+            </span>
+          </span>
+        </label>
+      )}
     </section>
   );
 }
@@ -874,11 +984,16 @@ function StepTerms({
   setDraft,
   context,
   showErrors,
+  onBotToken,
+  botResetKey,
 }: {
   draft: Draft;
   setDraft: React.Dispatch<React.SetStateAction<Draft>>;
   context: BookingContext;
   showErrors: boolean;
+  onBotToken: (token: string | null) => void;
+  /** Changes after a refused submit, so the widget fetches a fresh token. */
+  botResetKey: unknown;
 }) {
   const blocks = context.disclosures.booking_terms;
 
@@ -920,6 +1035,10 @@ function StepTerms({
           />
         )}
       </div>
+
+      {/* Part F / A5 "bot protection on submission": nothing renders until a
+          site key is set, and the confirm button waits for the token. */}
+      <BotCheck onToken={onBotToken} resetKey={botResetKey} className="mt-6" />
     </section>
   );
 }
@@ -955,7 +1074,9 @@ function blankDraft(
   context: BookingContext,
   party: Party,
   roomTypeId: string | null,
-  extras: Record<string, number>
+  extras: Record<string, number>,
+  initialLead: BookingFlowProps['initialLead'],
+  signedIn: boolean
 ): Draft {
   const defaultRoom =
     roomTypeId ??
@@ -968,12 +1089,17 @@ function blankDraft(
     party,
     roomTypeId: defaultRoom,
     extras,
-    lead: { name: '', email: '', phone: '' },
+    // A8: a signed-in traveller's profile is the lead traveller until they
+    // say otherwise — the account page has promised this since it was built.
+    lead: initialLead ?? { name: '', email: '', phone: '' },
     address: { line1: '', city: '', region: '', postalCode: '', country: '' },
     travellers: travellerSkeleton(party),
     fieldValues: {},
     accepted: {},
     promotionCode: '',
+    // Ticked by default: it is their own account, the box says exactly what
+    // it keeps, and a list nobody ever fills would make the feature invisible.
+    saveTravellers: signedIn,
   };
 }
 
@@ -985,6 +1111,8 @@ function restore(key: string): Draft | null {
     // A draft with no travellers array is from an older shape; start fresh
     // rather than render half of it.
     if (!parsed || !Array.isArray(parsed.travellers) || !parsed.party) return null;
+    // A draft saved before the checkbox existed.
+    if (typeof parsed.saveTravellers !== 'boolean') parsed.saveTravellers = false;
     return parsed;
   } catch {
     return null;

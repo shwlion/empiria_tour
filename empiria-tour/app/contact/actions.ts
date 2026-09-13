@@ -3,6 +3,7 @@
 import { headers } from 'next/headers';
 import { getPlatformSettings } from '@/lib/catalogue';
 import { isSesConfigured, sendViaSes } from '@/lib/email/ses';
+import { BOT_CHECK_FIELD, BOT_CHECK_MESSAGE, verifyBotCheck } from '@/lib/botcheck';
 
 /**
  * The contact form.
@@ -51,6 +52,11 @@ export async function contactAction(_prev: ContactResult | null, form: FormData)
   if (Object.keys(fields).length > 0) {
     return { ok: false, message: 'A couple of things still need filling in.', fields };
   }
+
+  // Part F: after the field checks, because a token is single-use and a
+  // person fixing a typo should not have to pass the widget twice.
+  const bot = await verifyBotCheck(str(form, BOT_CHECK_FIELD));
+  if (!bot.ok) return { ok: false, message: BOT_CHECK_MESSAGE };
 
   const settings = await getPlatformSettings();
   const to = settings?.contact_email?.trim();

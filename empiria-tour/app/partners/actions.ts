@@ -2,6 +2,7 @@
 
 import { headers } from 'next/headers';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { BOT_CHECK_FIELD, BOT_CHECK_MESSAGE, verifyBotCheck } from '@/lib/botcheck';
 import { enqueue } from '@/lib/email/outbox';
 
 /**
@@ -37,9 +38,9 @@ export async function applyAction(_prev: ApplyResult | null, form: FormData): Pr
   // while providing none, which is worse than nothing because the next person
   // to read this would have trusted it.
   //
-  // Part F's "bot protection on public forms" means a real challenge —
-  // Turnstile or hCaptcha — and it is still unbuilt. This form and the booking
-  // flow both need it.
+  // Part F's "bot protection on public forms" is the Turnstile check below,
+  // live once Empiria sets its keys (lib/botcheck.ts). The honeypot stays: it
+  // costs nothing and catches the dumbest half of the traffic first.
   if (str(form, 'company_website_url') !== '') {
     return { ok: true };
   }
@@ -55,6 +56,11 @@ export async function applyAction(_prev: ApplyResult | null, form: FormData): Pr
   if (Object.keys(fields).length > 0) {
     return { ok: false, message: 'A few things still need filling in.', fields };
   }
+
+  // After the field checks: a token is single-use, and somebody fixing a
+  // typo should not have to pass the widget twice.
+  const bot = await verifyBotCheck(str(form, BOT_CHECK_FIELD));
+  if (!bot.ok) return { ok: false, message: BOT_CHECK_MESSAGE };
 
   const db = getSupabaseAdmin();
   if (!db) {

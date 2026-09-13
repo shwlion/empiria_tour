@@ -1,7 +1,9 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { applyAction, type ApplyResult } from './actions';
+import BotCheck from '@/components/BotCheck';
+import { track } from '@/lib/analytics';
 import ApplyStepper, { type StepDef } from '@/components/partners/ApplyStepper';
 
 /**
@@ -40,6 +42,11 @@ function Field({
 
 export default function ApplyForm() {
   const [state, formAction, pending] = useActionState<ApplyResult | null, FormData>(applyAction, null);
+
+  // Part F: a submitted application is a lead. Goes nowhere without consent and a provider.
+  useEffect(() => {
+    if (state?.ok) track('generate_lead', { lead_type: 'partner_application' });
+  }, [state]);
 
   /*
     Controlled, and that is load-bearing rather than a style choice.
@@ -170,6 +177,9 @@ export default function ApplyForm() {
           <textarea id="message" name="message" {...bind('message')} rows={4} className={inputClass}
                     placeholder="Licences you hold, insurance, who you already work with — whatever helps us understand the operation." />
         </Field>
+
+        {/* Part F: renders only when Empiria has set a Turnstile site key. */}
+        <BotCheck resetKey={state} />
       </fieldset>
 
       </ApplyStepper>

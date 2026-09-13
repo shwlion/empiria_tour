@@ -170,6 +170,45 @@ parse. The seeded questions describe how the platform works and point to
 the policy pages for anything that is Empiria's decision; none of them
 states a term.
 
+### Saved travellers (A8)
+`/account/travellers` is the third account tab: the people this account
+books for, in `saved_travellers` (migration 0019 — one row per person per
+account via `UNIQUE NULLS NOT DISTINCT (user_id, legal_name, date_of_birth)`,
+a cap of twenty by trigger, own-row RLS, erased by `close_own_account`). The
+account page writes through the user's own client so the policies decide;
+`lib/savedTravellers.ts` reads under the service role filtered by user, as
+`getProfile` does. The booking page offers the list on every traveller card
+(a picker keyed on name + birthday, so it shows the pick and clears when the
+name is edited), starts the lead traveller from the profile, and remembers
+the booking's travellers afterwards when the signed-in traveller leaves the
+box ticked — `rememberTravellers` updates the ones already there and adds
+the rest up to the cap, in the server action, keyed on the server's user.
+Not one upsert: the cap is a BEFORE INSERT trigger, which fires for `INSERT …
+ON CONFLICT` before the conflict is found. Editing a profile never touches a
+booking already made.
+
+### Part F seams — bot protection and analytics
+Both are built and both do nothing until Empiria pastes keys (§4.4(a): the
+accounts are theirs). **Bot protection:** Cloudflare Turnstile.
+`components/BotCheck.tsx` renders the widget only when
+`NEXT_PUBLIC_TURNSTILE_SITE_KEY` is set; `lib/botcheck.ts:verifyBotCheck`
+verifies only when `TURNSTILE_SECRET_KEY` is — unset it returns
+`{ ok: true, checked: false }`, set it refuses a missing token and fails
+closed if Cloudflare is unreachable. On the contact form, the partner
+application and the booking flow's last step (A5 "bot protection on
+submission"). Forms verify *after* their field checks because a token is
+single-use; the widget takes a `resetKey` (the form's last result) so a
+refused submit fetches a fresh one. `lib/botcheck.test.ts` proves the round
+trip with Cloudflare's published always-pass / always-fail secrets.
+**Analytics:** `lib/analytics.ts:track(name, params)` sends to gtag.js or a
+GTM container, whichever `components/Analytics.tsx` mounted — and it mounts
+nothing until the visitor accepted the consent banner *and* a
+`NEXT_PUBLIC_GTM_ID` / `NEXT_PUBLIC_GA_ID` exists. Events: `search`,
+`begin_checkout`, `purchase` (once per reference, on the return from
+Checkout), `generate_lead`. No manual page views: GA4's enhanced measurement
+and a GTM history trigger already count them, and a second would double every
+navigation.
+
 ### Two things the browser taught us
 - **`Intl.formatRange` differs between ICU builds** (Bun: "May 1 – 8", Chrome:
   "May 1–8"), so `formatDateRange` in `lib/money.ts` composes the string

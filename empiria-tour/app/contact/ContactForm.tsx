@@ -1,7 +1,9 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useEffect } from 'react';
 import { contactAction, type ContactResult } from './actions';
+import BotCheck from '@/components/BotCheck';
+import { track } from '@/lib/analytics';
 
 /**
  * Name, email, message. The same field kit as the partner application so the
@@ -30,6 +32,11 @@ function Field({
 export default function ContactForm({ available }: { available: boolean }) {
   const [state, formAction, pending] = useActionState<ContactResult | null, FormData>(contactAction, null);
   const err = state && !state.ok ? state.fields ?? {} : {};
+
+  // Part F: a sent inquiry is a lead. Goes nowhere without consent and a provider.
+  useEffect(() => {
+    if (state?.ok) track('generate_lead', { lead_type: 'contact' });
+  }, [state]);
 
   if (state?.ok) {
     return (
@@ -69,6 +76,9 @@ export default function ContactForm({ available }: { available: boolean }) {
       <Field name="message" label="Your inquiry" error={err.message} hint="Dates, group size, a tour you are looking at — anything that helps us answer well.">
         <textarea id="message" name="message" required rows={7} maxLength={4000} className={`${inputClass} resize-y leading-relaxed`} />
       </Field>
+
+      {/* Part F: renders only when Empiria has set a Turnstile site key. */}
+      <BotCheck resetKey={state} />
 
       <div className="flex flex-wrap items-center gap-4">
         <button
