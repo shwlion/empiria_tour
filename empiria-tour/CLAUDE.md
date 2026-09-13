@@ -78,6 +78,29 @@ threads it into its menus. The footer is white sitewide.
   only hides content under `html.js`, which `app/layout.tsx` sets with an
   inline script before paint.
 
+### The journal page
+`/blog` is a cinematic scroll story — the "Mostar city" composition — and the
+published posts are its slider cards. The specification it reproduces is
+verbatim in `app/blog/cinema.css` (every value) and
+`components/blog/CinemaScroll.tsx` (the DOM, the per-frame engine, the
+infinite slider). Three adaptations let a standalone page live here, and each
+is the smallest one that works:
+- **Every selector is prefixed `.cinema-page`.** Route CSS persists across
+  client navigations and `.facts` is already a class elsewhere.
+- **The spec's `html`/`body` rules hang off `html.cinema-html`**, added on
+  mount and removed on unmount — nothing of this page survives leaving it.
+- **`max-width: none` on `.scene-img`.** Tailwind's preflight clamps `img` to
+  100%; the bridge is 105vw, the splitframes 118vw and frame-two 122vw.
+The engine writes its custom properties to `.cinema-page`, not `:root`. A
+card click **navigates** to `/blog/[slug]` (the spec's click-to-centre is
+replaced by that); the ← → buttons keep the sliding. The scene layers are raw
+`<img>` with a file-level `no-img-element` disable and a stated reason. The
+display face is served by `app/api/fonts/ogg/route.ts`: the spec's font host
+sends no `Access-Control-Allow-Origin`, so a browser refuses it cross-origin
+and the headline falls back to a system serif — the route fetches the same
+file server-side and serves it from this origin. The copy is the spec's
+Mostar text, hard-coded; making it editable is a follow-up.
+
 ### Two things the browser taught us
 - **`Intl.formatRange` differs between ICU builds** (Bun: "May 1 – 8", Chrome:
   "May 1–8"), so `formatDateRange` in `lib/money.ts` composes the string
