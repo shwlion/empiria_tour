@@ -110,7 +110,14 @@ the viewport by a per-frame correction the engine measures (the spec pushed
 it half off the left edge), it lifts with a deeper shadow, the ← → buttons
 sit under it, the slider is z 4 so the bazaar layer no longer paints its
 minarets through the cards, a dark scrim fades in behind the row, and the row
-arrives at 2700–3150 rather than the spec's 2760–3560^1.55. The scene layers are raw
+arrives at 2700–3150 rather than the spec's 2760–3560^1.55. **No pixel caps
+on the layers (13 Sep):** the spec's `min(118vw, 2240px)` on the frames,
+`min(122vw, 2160px)` on the river close-up and `min(…, 2140px)` on the
+bridge were sized for a ~1920px display; on a 2560px monitor they held the
+frames at 87% of the width and left sky at the edges. Every layer is a 16:9
+image sized in vw, so uncapped they draw the same shape at any width — a
+uniform scale, not a stretch; above ~2900px the 2880px PNGs go a little
+soft, which the client chose over gaps. The scene layers are raw
 `<img>` with a file-level `no-img-element` disable and a stated reason. The
 display face is served by `app/api/fonts/ogg/route.ts`: the spec's font host
 sends no `Access-Control-Allow-Origin`, so a browser refuses it cross-origin

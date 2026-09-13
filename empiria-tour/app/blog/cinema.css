@@ -231,12 +231,18 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
 
 .cinema-page .bridge-img {
   left: 50%; bottom: var(--bridge-bottom); z-index: 4;
-  width: min(var(--bridge-width), 2140px); height: auto;
+  /* No pixel cap. The spec's min(…, 2140px) held the bridge at ~84% of the
+     screen on a 2560px monitor and 56% on a 4K one; every layer is a 16:9
+     image sized by viewport width, so without the caps the composition is
+     the same shape at any size, only larger — a uniform scale, never a
+     stretch. Above ~2900px the 2880px-wide PNGs are upscaled and go a
+     little soft, which is the trade the client chose over gaps. */
+  width: var(--bridge-width); height: auto;
   transform: translate3d(var(--bridge-x), var(--bridge-y), 0) scale(var(--bridge-scale));
   transform-origin: 50% 48%;
 }
 .cinema-page .splitframe-img {
-  left: 50%; bottom: -2vh; z-index: 6; width: min(118vw, 2240px); height: auto; pointer-events: none;
+  left: 50%; bottom: -2vh; z-index: 6; width: 118vw; height: auto; pointer-events: none;
   /* Not in the spec: the frames fade where they used to part. */
   opacity: var(--split-opacity);
 }
@@ -250,7 +256,7 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
 }
 .cinema-page .frame-two-img {
   filter: none !important; backdrop-filter: none;
-  left: 50%; top: 50%; z-index: 5; width: min(122vw, 2160px); height: auto;
+  left: 50%; top: 50%; z-index: 5; width: 122vw; height: auto;
   opacity: var(--frame2-opacity);
   transform: translate3d(var(--frame2-x), var(--frame2-y), 0) scale(var(--frame2-scale));
   transform-origin: 50% 48%;
