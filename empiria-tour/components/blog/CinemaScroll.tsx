@@ -187,10 +187,11 @@ export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; cou
       // bottom edge is measured rather than assumed, so a change to the navbar
       // never puts a card under it. On a 700px-tall laptop the spec's formula
       // alone would.
-      // 16px of air, plus the ~14px the active card rises by when it is lifted
-      // and scaled — measured on the row, not on the lifted card, so the
-      // correction has to include the lift.
-      const navBottom = navBottomRaw != null ? navBottomRaw + 30 : 0;
+      // Room under the navbar: the ~14px the active card rises by when it is
+      // lifted and scaled (measured on the row, not the lifted card), and then
+      // clear air — 90px in all, at the client's request; 30 was too tight to
+      // the plate.
+      const navBottom = navBottomRaw != null ? navBottomRaw + 90 : 0;
       const sightsScreenTop = Math.max(
         Math.min(220, Math.max(112, window.innerHeight * 0.19)) - 50,
         navBottom
