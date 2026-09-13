@@ -132,6 +132,19 @@ form's honeypot; Part F's real challenge is still unbuilt for all three
 public forms. Two SES facts that read as bugs: a sandbox account may only send
 *to* verified addresses, and the From must be a verified identity.
 
+### The FAQ page
+`/faq` renders the `faq` static page as dropdowns. The questions live in the
+page's body in the console, one `## ` line per question with its answer
+beneath (`lib/faq.ts`, tested), so Empiria edits them without a code change
+as B6 requires; anything above the first question is the introduction, and a
+body with no `##` renders as plain text like the other six pages. Each item
+is a native `<details>` — no JavaScript, keyboard and screen-reader behaviour
+for free — with answers through `renderBlogMarkdown`, which never turns the
+author's text into markup. A `FAQPage` JSON-LD is emitted from the same
+parse. The seeded questions describe how the platform works and point to
+the policy pages for anything that is Empiria's decision; none of them
+states a term.
+
 ### Two things the browser taught us
 - **`Intl.formatRange` differs between ICU builds** (Bun: "May 1 – 8", Chrome:
   "May 1–8"), so `formatDateRange` in `lib/money.ts` composes the string

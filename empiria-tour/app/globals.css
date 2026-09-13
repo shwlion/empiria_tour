@@ -478,6 +478,13 @@ button:hover .arrow { transform: translateX(4px); }
 .blog-body ol { list-style: decimal; }
 .blog-body li + li { margin-top: .4em; }
 .blog-body li::marker { color: var(--stone); }
+
+/* The FAQ's answers reuse .blog-body for lists, links and emphasis, at the
+   page's smaller size; the answer's colour is the quieter one so the question
+   stays the thing you scan. */
+.faq-answer.blog-body { font-size: 16px; line-height: 1.7; color: var(--stone); }
+.faq-answer.blog-body > * + * { margin-top: .9em; }
+.faq-answer.blog-body strong { color: var(--ink); }
 .blog-body blockquote {
   border-left: 3px solid var(--ember);
   padding-left: 1.1em;

@@ -163,8 +163,10 @@ export default async function Footer() {
 
         {/* Colophon */}
         <div className="flex flex-col items-center justify-between gap-4 pt-8 font-mono text-[11px] uppercase tracking-wide text-stone md:flex-row">
+          {/* The registered company name when Empiria has set it, else the
+              product's. The coordinates that used to follow were a flourish. */}
           <span>
-            &copy; {new Date().getFullYear()} {settings?.company_name ?? 'Empiria'} &middot; 43.6532&deg; N
+            &copy; {new Date().getFullYear()} {settings?.company_name ?? 'Empiria Tours'}. All rights reserved.
           </span>
           <div className="flex gap-6">
             <Link href="/privacy" className="ul hover:text-ink">Privacy</Link>
