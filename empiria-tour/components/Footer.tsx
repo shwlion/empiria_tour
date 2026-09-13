@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { getDisclosures, getPlatformSettings } from '@/lib/catalogue';
+import { APEX_URL } from '@/lib/urls';
 
 /**
  * A1 global footer.
@@ -103,6 +104,13 @@ export default async function Footer() {
               <span className={headClass}>Company</span>
               <Link href="/about" className={linkClass}>About us</Link>
               <Link href="/faq" className={linkClass}>FAQ</Link>
+              {/* The sister product. An external site, so a plain anchor that
+                  opens in a new tab: leaving the storefront should not lose a
+                  booking in progress. The address is the shared constant, so
+                  it moves with the other cross-app links if the domain does. */}
+              <a href={APEX_URL} target="_blank" rel="noopener noreferrer" className={linkClass}>
+                Empiria Events
+              </a>
             </div>
 
             {/* Contact + social, both configurable */}
