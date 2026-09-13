@@ -98,14 +98,33 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
 
 /* ── Scene images ───────────────────────────────────────────────────────── */
 
+/*
+ * Each layer is a box (.scene-img) carrying the spec's position, size and
+ * transform, with the photograph (.scene-layer) inside it. The split exists
+ * for one reason: on a Retina screen the browser rasters a composited image
+ * at 2× — on a 2560px monitor that is a ~6000px-wide texture per layer, seven
+ * layers, three of them being blurred every frame — and that is what turns
+ * into stutter and blank tiles. Below, on ≥1.5dppx screens, the photograph is
+ * laid out at half size and scaled ×2 on the GPU, so it rasters at 1×: a
+ * quarter of the pixels, and nothing lost, because the sources are 2880–3840px
+ * wide and 1× on that monitor is already at or above their native size.
+ * The filters live on the photograph, not the box, for the same reason.
+ */
 .cinema-page .scene-img {
   display: block; max-width: none; user-select: none; -webkit-user-drag: none;
-  will-change: transform, opacity, filter; pointer-events: none;
+  will-change: transform, opacity; pointer-events: none;
 }
-.cinema-page .sky-img {
-  inset: 0; width: 100%; height: 100%; object-fit: cover; transform: none; z-index: 0;
-  filter: blur(var(--blur-px)) brightness(var(--back-brightness));
+.cinema-page .scene-img > .scene-layer {
+  position: absolute; inset: 0; display: block; width: 100%; height: 100%; max-width: none;
+  object-fit: cover; will-change: transform, filter; pointer-events: none; user-select: none; -webkit-user-drag: none;
 }
+@media (min-resolution: 1.5dppx) {
+  .cinema-page .scene-img > .scene-layer {
+    width: 50%; height: 50%; transform: scale(2); transform-origin: 0 0;
+  }
+}
+.cinema-page .sky-img { inset: 0; width: 100%; height: 100%; transform: none; z-index: 0; }
+.cinema-page .sky-img > .scene-layer { filter: blur(var(--blur-px)) brightness(var(--back-brightness)); }
 
 .cinema-page .back-stack {
   top: 0; bottom: 0; left: -3vw; right: -3vw; z-index: 1;
@@ -114,17 +133,18 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
   transform-origin: 50% 100%;
   will-change: transform, filter, opacity;
 }
-.cinema-page .back-img {
-  inset: 0; width: 100%; height: 100%; object-fit: cover;
-  filter: blur(var(--blur-px)) brightness(var(--back-brightness));
-}
+.cinema-page .back-img { inset: 0; width: 100%; height: 100%; }
+.cinema-page .back-img > .scene-layer { filter: blur(var(--blur-px)) brightness(var(--back-brightness)); }
+/* A box has no intrinsic aspect; these photographs are 16:9, so the box is too. */
 .cinema-page .back-bazaar, .cinema-page .back-four {
-  top: auto; bottom: 0; left: 48%; right: auto; width: 112%; height: auto; object-fit: contain;
+  top: auto; bottom: 0; left: 48%; right: auto; width: 112%; height: auto; aspect-ratio: 16 / 9;
 }
 .cinema-page .back-bazaar {
   z-index: 3; opacity: 1;
-  filter: blur(var(--bazaar-blur-px)) brightness(var(--bazaar-brightness)) saturate(var(--bazaar-saturation));
   transform: translate3d(-50%, var(--bazaar-y), 0) scale(0.86);
+}
+.cinema-page .back-bazaar > .scene-layer {
+  filter: blur(var(--bazaar-blur-px)) brightness(var(--bazaar-brightness)) saturate(var(--bazaar-saturation));
 }
 .cinema-page .back-four {
   z-index: 1; opacity: 0.72; mix-blend-mode: screen;
@@ -237,12 +257,12 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
      the same shape at any size, only larger — a uniform scale, never a
      stretch. Above ~2900px the 2880px-wide PNGs are upscaled and go a
      little soft, which is the trade the client chose over gaps. */
-  width: var(--bridge-width); height: auto;
+  width: var(--bridge-width); height: auto; aspect-ratio: 16 / 9;
   transform: translate3d(var(--bridge-x), var(--bridge-y), 0) scale(var(--bridge-scale));
   transform-origin: 50% 48%;
 }
 .cinema-page .splitframe-img {
-  left: 50%; bottom: -2vh; z-index: 6; width: 118vw; height: auto; pointer-events: none;
+  left: 50%; bottom: -2vh; z-index: 6; width: 118vw; height: auto; aspect-ratio: 16 / 9; pointer-events: none;
   /* Not in the spec: the frames fade where they used to part. */
   opacity: var(--split-opacity);
 }
@@ -254,9 +274,10 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
   transform: translate3d(var(--split-right-x), var(--split-right-y), 0) scale(var(--split-right-scale));
   transform-origin: 79% 52%;
 }
+.cinema-page .frame-two-img > .scene-layer { filter: none !important; }
 .cinema-page .frame-two-img {
-  filter: none !important; backdrop-filter: none;
-  left: 50%; top: 50%; z-index: 5; width: 122vw; height: auto;
+  backdrop-filter: none;
+  left: 50%; top: 50%; z-index: 5; width: 122vw; height: auto; aspect-ratio: 3854 / 2160;
   opacity: var(--frame2-opacity);
   transform: translate3d(var(--frame2-x), var(--frame2-y), 0) scale(var(--frame2-scale));
   transform-origin: 50% 48%;

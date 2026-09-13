@@ -65,6 +65,20 @@ const PINS = [
 /** Three identical sets, so the slider can wrap without a visible jump. */
 const SETS = 3;
 
+/**
+ * A scene layer: a box that carries the spec's positioning and transform, and
+ * inside it the photograph, which is what actually gets rastered. Splitting
+ * the two lets the CSS raster the photograph at 1× on Retina screens (see
+ * cinema.css) while the box keeps every value the spec gives it.
+ */
+function Layer({ className, src }: { className: string; src: string }) {
+  return (
+    <div className={`scene-img ${className}`}>
+      <img className="scene-layer" src={src} alt="" decoding="async" />
+    </div>
+  );
+}
+
 function formatDate(iso: string | null): string {
   if (!iso) return '';
   return new Date(iso).toLocaleDateString('en-CA', {
@@ -137,7 +151,13 @@ export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; cou
     function update() {
       rafPending = false;
 
+      // Every measurement first, every write after. Reading a rect between
+      // writes forces the browser to lay the page out again mid-frame; the
+      // trace showed one forced layout per frame, which this removes.
       targetScroll = getScrollDistance();
+      const navBottomRaw = nav ? nav.getBoundingClientRect().bottom : null;
+      const cardWidth = sightCards.length > 0 ? sightCards[0].offsetWidth : 0;
+      const sliderLeftRaw = sightCards.length > 0 ? slider!.getBoundingClientRect().left : 0;
       if (!initialized || reduceMotion.matches) {
         smoothScroll = targetScroll;
         initialized = true;
@@ -170,7 +190,7 @@ export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; cou
       // 16px of air, plus the ~14px the active card rises by when it is lifted
       // and scaled — measured on the row, not on the lifted card, so the
       // correction has to include the lift.
-      const navBottom = nav ? nav.getBoundingClientRect().bottom + 30 : 0;
+      const navBottom = navBottomRaw != null ? navBottomRaw + 30 : 0;
       const sightsScreenTop = Math.max(
         Math.min(220, Math.max(112, window.innerHeight * 0.19)) - 50,
         navBottom
@@ -240,10 +260,7 @@ export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; cou
       // the two agree exactly once scrolling stops. The correction is applied
       // on the slider, in the back-stack's coordinates, hence ÷ backScale.
       if (sightCards.length > 0) {
-        const cardWidth = sightCards[0].offsetWidth;
-        // `!` for the same reason `track!` is: update() is a hoisted declaration,
-        // so the guard above does not narrow inside it.
-        const baseLeft = slider!.getBoundingClientRect().left - centerX * backScale;
+        const baseLeft = sliderLeftRaw - centerX * backScale;
         centerX = (window.innerWidth / 2 - (baseLeft + cardWidth / 2)) / backScale;
         set('--sights-center-x', `${centerX}px`);
       }
@@ -335,10 +352,10 @@ export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; cou
       <section className="cinema-scroll" id="cinema" aria-label="Empiria Tours journal" ref={sectionRef}>
         <div className="stage">
           <div className="world">
-            <img className="scene-img sky-img" src={SCENE.sky} alt="" />
+            <Layer className="sky-img" src={SCENE.sky} />
 
             <div className="back-stack">
-              <img className="scene-img back-img back-four" src={SCENE.four} alt="" />
+              <Layer className="back-img back-four" src={SCENE.four} />
               <section className="sights-slider" aria-label="Latest posts" ref={sliderRef}>
                 <div className="sights-track" ref={trackRef}>
                   {posts.length > 0 &&
@@ -373,7 +390,7 @@ export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; cou
                   <p className="sights-empty">Nothing published yet. The first posts are being written.</p>
                 )}
               </section>
-              <img className="scene-img back-img back-bazaar" src={SCENE.bazaar} alt="" />
+              <Layer className="back-img back-bazaar" src={SCENE.bazaar} />
               {posts.length > 0 && <div className="sights-scrim" aria-hidden="true" />}
             </div>
 
@@ -393,10 +410,10 @@ export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; cou
                 rest. The engine's --title-* writes stay, harmless, so a title
                 could return without touching the maths. */}
 
-            <img className="scene-img splitframe-img splitframe-left" src={SCENE.splitLeft} alt="" />
-            <img className="scene-img splitframe-img splitframe-right" src={SCENE.splitRight} alt="" />
-            <img className="scene-img bridge-img" src={SCENE.bridge} alt="" />
-            <img className="scene-img frame-two-img" src={SCENE.frameTwo} alt="" />
+            <Layer className="splitframe-img splitframe-left" src={SCENE.splitLeft} />
+            <Layer className="splitframe-img splitframe-right" src={SCENE.splitRight} />
+            <Layer className="bridge-img" src={SCENE.bridge} />
+            <Layer className="frame-two-img" src={SCENE.frameTwo} />
             <div className="shade" />
           </div>
 

@@ -120,7 +120,15 @@ the viewport by a per-frame correction the engine measures (the spec pushed
 it half off the left edge), it lifts with a deeper shadow, the ← → buttons
 sit under it, the slider is z 4 so the bazaar layer no longer paints its
 minarets through the cards, a dark scrim fades in behind the row, and the row
-arrives at 2700–3150 rather than the spec's 2760–3560^1.55. **No pixel caps
+arrives at 2700–3150 rather than the spec's 2760–3560^1.55. **Each layer is
+a box plus a photograph (13 Sep):** `.scene-img` is a div carrying the
+spec's position and transform, `.scene-layer` the `<img>` inside it, and
+on ≥1.5dppx screens the photograph is laid out at half size and scaled ×2
+on the GPU so it rasters at 1× — a quarter of the pixels per layer, which
+is what stopped the stutter and blank tiles on a 2560px Retina monitor.
+The filters sit on the photograph, not the box, for the same reason. The
+engine reads every measurement before it writes anything, so it no longer
+forces a layout mid-frame. **No pixel caps
 on the layers (13 Sep):** the spec's `min(118vw, 2240px)` on the frames,
 `min(122vw, 2160px)` on the river close-up and `min(…, 2140px)` on the
 bridge were sized for a ~1920px display; on a 2560px monitor they held the
