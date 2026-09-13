@@ -49,7 +49,7 @@ export default function HeroIntro({
       <p className="fade-in mt-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-label text-stone" style={delay(900)}>
         <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-ember" aria-hidden="true" />
         <span>
-          {seller.name ?? 'Empiria'}
+          {seller.name ?? 'Empiria Tours'}
           {seller.registrationNumber ? ` · Registration ${seller.registrationNumber}` : ''}
           {' · all-in prices'}
         </span>

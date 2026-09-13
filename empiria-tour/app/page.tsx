@@ -354,7 +354,7 @@ export default async function TourHome({
                             Registered and accountable
                         </h3>
                         <p className="mt-1.5 text-[14px] leading-relaxed text-stone">
-                            {settings?.company_name ?? 'Empiria'}
+                            {settings?.company_name ?? 'Empiria Tours'}
                             {settings?.registration_number
                                 ? ` · Registration ${settings.registration_number}`
                                 : ''}
