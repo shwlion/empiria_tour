@@ -118,6 +118,20 @@ and the headline falls back to a system serif — the route fetches the same
 file server-side and serves it from this origin. The copy is hard-coded in the
 component; making it editable from the console is a follow-up.
 
+### The contact page
+`/contact` is B6's contact page with a form: name (optional), email, message.
+It **stores nothing** — by the client's decision — and sends straight to the
+contact address in Platform settings through **Amazon SES**, with the
+sender's address as Reply-To. `lib/email/ses.ts` is one signed POST over
+`fetch` (no SDK, like the Resend mailer); the signature is
+`lib/email/sigv4.ts`, proved against AWS's published get-vanilla test vector
+in `lib/email/sigv4.test.ts`. Four server-only env vars (`AWS_SES_REGION`,
+`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `SES_FROM_EMAIL`); absent, the
+form renders with Send disabled and says why. Bot protection is the partner
+form's honeypot; Part F's real challenge is still unbuilt for all three
+public forms. Two SES facts that read as bugs: a sandbox account may only send
+*to* verified addresses, and the From must be a verified identity.
+
 ### Two things the browser taught us
 - **`Intl.formatRange` differs between ICU builds** (Bun: "May 1 – 8", Chrome:
   "May 1–8"), so `formatDateRange` in `lib/money.ts` composes the string
