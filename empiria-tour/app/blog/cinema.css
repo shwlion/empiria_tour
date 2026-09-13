@@ -67,7 +67,7 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
   --panel3-opacity: 0; --panel3-y: calc(-50% + 58px);
   --sights-opacity: 0; --sights-controls-opacity: 0; --sights-y: 0px;
   --sights-visibility: hidden;
-  --sights-shift: 0px; --sights-scale: 1;
+  --sights-shift: 0px; --sights-scale: 1; --sights-center-x: 0px;
   --sights-top: clamp(112px, 19vh, 220px);
   --sights-screen-top: clamp(112px, 19vh, 220px);
   --ink: #111411; --paper: #fdf1e1; --shadow: rgba(0, 0, 0, 0.32);
@@ -134,17 +134,34 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
 /* ── Sights slider (z 2) ────────────────────────────────────────────────── */
 
 .cinema-page .sights-slider {
-  left: 0; right: 0; top: var(--sights-top); z-index: 2; padding: 0;
+  /* z 4, not the spec's 2: at 2 the bazaar layer (3) painted over the row and
+     its minarets came through the cards. */
+  left: 0; right: 0; top: var(--sights-top); z-index: 4; padding: 0;
   /* The spec slid the row in from 420vw and kept opacity at 1. At the
      client's request the cards fade in where they sit instead. */
   opacity: var(--sights-opacity);
   visibility: var(--sights-visibility);
-  transform: translate3d(0, var(--sights-y), 0) scale(var(--sights-scale));
+  /* --sights-center-x is the engine's per-frame correction that puts the
+     active card in the middle of the viewport. It lives on the slider, which
+     has no transition, rather than on the track, which has a 640ms one — a
+     per-frame write through that transition would lag the scroll. */
+  transform: translate3d(var(--sights-center-x), var(--sights-y), 0) scale(var(--sights-scale));
   transform-origin: 0 0; pointer-events: auto; will-change: transform;
+}
+/* Behind the row, inside the back-stack so it sits under the cards and over
+   the photograph: cream cards on a pale sky had no edge. */
+.cinema-page .sights-scrim {
+  position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  opacity: var(--sights-opacity);
+  background: linear-gradient(180deg,
+    rgba(11, 17, 16, 0.66) 0%,
+    rgba(11, 17, 16, 0.42) 38%,
+    rgba(11, 17, 16, 0) 66%);
 }
 .cinema-page .sights-track {
   display: flex; gap: clamp(16px, 1.15vw, 24px); align-items: stretch;
-  transform: translate3d(calc(var(--sights-shift) - 18vw), 0, 0);
+  /* The spec's "- 18vw" is gone: the active card is centred by the engine. */
+  transform: translate3d(var(--sights-shift), 0, 0);
   transition: transform 640ms cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform;
 }
@@ -157,9 +174,17 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
 .cinema-page .sight-card {
   position: relative; flex: 0 0 clamp(360px, 19.4vw, 430px); height: 220px; padding: 24px;
   overflow: hidden; border: 1px solid rgba(253, 241, 225, 0.42); border-radius: 24px;
-  color: #000; background: #fdf1e1; box-shadow: 0 18px 52px rgba(2, 47, 64, 0.12);
+  color: #000; background: #fdf1e1; box-shadow: 0 22px 60px rgba(2, 47, 64, 0.26);
   backdrop-filter: none; cursor: pointer; pointer-events: auto; user-select: none;
+  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 420ms ease;
 }
+/* The centred card is the one you are looking at, and it says so. */
+.cinema-page .sight-card.is-active {
+  transform: translateY(-10px) scale(1.03);
+  box-shadow: 0 34px 80px rgba(2, 47, 64, 0.38);
+}
+.cinema-page .sight-card:hover { transform: translateY(-6px); }
+.cinema-page .sight-card.is-active:hover { transform: translateY(-12px) scale(1.03); }
 .cinema-page .sight-card::before, .cinema-page .sight-card::after { content: none; }
 .cinema-page .sight-kicker, .cinema-page .sight-card h3, .cinema-page .sight-card p {
   text-shadow: none; position: relative; z-index: 1;
@@ -187,10 +212,12 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
 }
 
 .cinema-page .sights-controls {
-  left: 48px; right: auto; top: calc(var(--sights-screen-top) + 220px + 16px); z-index: 5;
-  display: flex; justify-content: flex-start; gap: 14px;
+  /* Centred under the active card rather than the spec's left: 48px, since
+     the card they move is now in the middle of the screen. */
+  left: 50%; right: auto; top: calc(var(--sights-screen-top) + 220px + 24px); z-index: 5;
+  display: flex; justify-content: center; gap: 14px;
   opacity: var(--sights-controls-opacity);
-  transform: translate3d(0, var(--sights-y), 0);
+  transform: translate3d(-50%, var(--sights-y), 0);
   pointer-events: none; will-change: transform, opacity;
 }
 .cinema-page .sights-controls.is-ready { pointer-events: auto; }
@@ -338,9 +365,9 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
   .cinema-page .facts { gap: 18px; margin-top: 34px; }
   .cinema-page .facts dt { font-size: 2.5rem; }
   .cinema-page .sights-slider { padding: 0; }
-  .cinema-page .sights-track { gap: 12px; transform: translate3d(calc(var(--sights-shift) - 18vw), 0, 0); }
+  .cinema-page .sights-track { gap: 12px; }
   .cinema-page .sight-card { flex-basis: min(82vw, 330px); height: 220px; padding: 24px; border-radius: 24px; }
-  .cinema-page .sights-controls { top: calc(var(--sights-screen-top) + 236px); }
+  .cinema-page .sights-controls { top: calc(var(--sights-screen-top) + 244px); }
   .cinema-page .sight-card h3 { max-width: 78%; }
   .cinema-page .sight-card p { max-width: 100%; margin-top: 10px; }
   .cinema-page .sight-kicker { margin-bottom: 56px; }
@@ -351,5 +378,5 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
   html.cinema-html { scroll-behavior: auto; }
   .cinema-page .scene-img, .cinema-page .back-stack,
   .cinema-page .intro-copy, .cinema-page .story-panel, .cinema-page .sights-track,
-  .cinema-page .sights-slider { transition: none; }
+  .cinema-page .sights-slider, .cinema-page .sight-card { transition: none; }
 }

@@ -95,6 +95,7 @@ export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; cou
   const router = useRouter();
   const rootRef = useRef<HTMLElement | null>(null);
   const sectionRef = useRef<HTMLElement | null>(null);
+  const sliderRef = useRef<HTMLElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
   const controlsRef = useRef<HTMLDivElement | null>(null);
   const prevRef = useRef<HTMLButtonElement | null>(null);
@@ -104,8 +105,9 @@ export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; cou
     const root = rootRef.current;
     const section = sectionRef.current;
     const track = trackRef.current;
+    const slider = sliderRef.current;
     const sightsControls = controlsRef.current;
-    if (!root || !section || !track) return;
+    if (!root || !section || !track || !slider) return;
 
     const html = document.documentElement;
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -123,6 +125,8 @@ export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; cou
     let sightCards: HTMLElement[] = [];
     const originalSightCount = posts.length;
     let activeSight = originalSightCount;
+    // The per-frame correction that centres the active card; see the CSS.
+    let centerX = 0;
 
     const set = (name: string, value: string | number) => root.style.setProperty(name, String(value));
 
@@ -146,9 +150,11 @@ export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; cou
       const frame3 = segmentInOut(smoothScroll, 1760, 2140, 2540, 2700);
       const progress = clamp(smoothScroll / 2700);
       const introExit = smoothstep(90, 650, smoothScroll);
-      const sightsEnterRaw = smoothstep(2760, 3560, smoothScroll);
-      const sightsEnter = Math.pow(sightsEnterRaw, 1.55);
-      const sightsControlsEnter = smoothstep(3360, 3660, smoothScroll);
+      // Earlier and fuller than the spec's 2760–3560 with a ^1.55 ease, which
+      // kept the row faint until the last 140px of the page. The bazaar panel
+      // has left by 2700, so nothing overlaps.
+      const sightsEnter = smoothstep(2700, 3150, smoothScroll);
+      const sightsControlsEnter = smoothstep(2950, 3250, smoothScroll);
       const blurActive = clamp(frame2.active + frame3.active);
       const frame2Opacity = frame2.active * (1 - frame3.enter);
       const panel2Opacity = frame2.active * (1 - frame2.exit);
@@ -161,7 +167,10 @@ export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; cou
       // bottom edge is measured rather than assumed, so a change to the navbar
       // never puts a card under it. On a 700px-tall laptop the spec's formula
       // alone would.
-      const navBottom = nav ? nav.getBoundingClientRect().bottom + 16 : 0;
+      // 16px of air, plus the ~14px the active card rises by when it is lifted
+      // and scaled — measured on the row, not on the lifted card, so the
+      // correction has to include the lift.
+      const navBottom = nav ? nav.getBoundingClientRect().bottom + 30 : 0;
       const sightsScreenTop = Math.max(
         Math.min(220, Math.max(112, window.innerHeight * 0.19)) - 50,
         navBottom
@@ -222,6 +231,22 @@ export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; cou
       set('--sights-scale', 1 / backScale);
       set('--sights-top', `${sightsParentTop}px`);
       set('--sights-screen-top', `${sightsScreenTop}px`);
+
+      // Centre the active card. The track's contents are at 1:1 on screen
+      // (the slider's 1/backScale cancels the back-stack's backScale), but the
+      // slider's own left edge moves as the back-stack zooms about its centre,
+      // so it is measured rather than derived. The measurement includes last
+      // frame's correction, which is removed before the new one is computed;
+      // the two agree exactly once scrolling stops. The correction is applied
+      // on the slider, in the back-stack's coordinates, hence ÷ backScale.
+      if (sightCards.length > 0) {
+        const cardWidth = sightCards[0].offsetWidth;
+        // `!` for the same reason `track!` is: update() is a hoisted declaration,
+        // so the guard above does not narrow inside it.
+        const baseLeft = slider!.getBoundingClientRect().left - centerX * backScale;
+        centerX = (window.innerWidth / 2 - (baseLeft + cardWidth / 2)) / backScale;
+        set('--sights-center-x', `${centerX}px`);
+      }
 
       if (Math.abs(smoothScroll - targetScroll) > 0.08) requestTick();
     }
@@ -314,7 +339,7 @@ export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; cou
 
             <div className="back-stack">
               <img className="scene-img back-img back-four" src={SCENE.four} alt="" />
-              <section className="sights-slider" aria-label="Latest posts">
+              <section className="sights-slider" aria-label="Latest posts" ref={sliderRef}>
                 <div className="sights-track" ref={trackRef}>
                   {posts.length > 0 &&
                     Array.from({ length: SETS }, (_, setIndex) =>
@@ -349,6 +374,7 @@ export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; cou
                 )}
               </section>
               <img className="scene-img back-img back-bazaar" src={SCENE.bazaar} alt="" />
+              {posts.length > 0 && <div className="sights-scrim" aria-hidden="true" />}
             </div>
 
             {posts.length > 0 && (

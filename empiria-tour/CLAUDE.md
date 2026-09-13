@@ -105,7 +105,12 @@ pointer parallax, the tower frames parting (with the lift and 1.74× scale
 that only made sense alongside it — they fade out over the same window
 instead, or they would cover the panels and the cards), and the cards flying
 in from 420vw; the row fades in place. Everything vertical is still the
-spec's. The scene layers are raw
+spec's. **Changed for visibility (13 Sep):** the active card is centred in
+the viewport by a per-frame correction the engine measures (the spec pushed
+it half off the left edge), it lifts with a deeper shadow, the ← → buttons
+sit under it, the slider is z 4 so the bazaar layer no longer paints its
+minarets through the cards, a dark scrim fades in behind the row, and the row
+arrives at 2700–3150 rather than the spec's 2760–3560^1.55. The scene layers are raw
 `<img>` with a file-level `no-img-element` disable and a stated reason. The
 display face is served by `app/api/fonts/ogg/route.ts`: the spec's font host
 sends no `Access-Control-Allow-Origin`, so a browser refuses it cross-origin
