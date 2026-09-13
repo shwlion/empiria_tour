@@ -795,3 +795,19 @@ async function fetchPrices(
 
 // Money formatting lives in lib/money.ts — it must be importable from client
 // components, which cannot import anything from this server-only module.
+// ─── Two numbers the journal's landing quotes ─────────────────────────────
+
+/**
+ * How much there is to read about, in the platform's own terms: published
+ * tours, and published destinations. Live rather than typed, so the journal's
+ * hero never quotes a figure the catalogue has moved past.
+ */
+export async function getCatalogueCounts(): Promise<{ tours: number; destinations: number }> {
+  const db = getSupabaseAdmin();
+  if (!db) return { tours: 0, destinations: 0 };
+  const [{ count: tours }, { count: destinations }] = await Promise.all([
+    db.from('packages').select('id', { count: 'exact', head: true }).eq('status', 'published'),
+    db.from('destinations').select('id', { count: 'exact', head: true }).eq('status', 'published'),
+  ]);
+  return { tours: tours ?? 0, destinations: destinations ?? 0 };
+}

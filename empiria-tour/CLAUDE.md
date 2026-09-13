@@ -79,12 +79,15 @@ threads it into its menus. The footer is white sitewide.
   inline script before paint.
 
 ### The journal page
-`/blog` is a cinematic scroll story — the "Mostar city" composition — and the
-published posts are its slider cards. The specification it reproduces is
-verbatim in `app/blog/cinema.css` (every value) and
-`components/blog/CinemaScroll.tsx` (the DOM, the per-frame engine, the
-infinite slider). Three adaptations let a standalone page live here, and each
-is the smallest one that works:
+`/blog` is a cinematic scroll story and the published posts are its slider
+cards. The composition it reproduces — layers, every CSS value, the per-frame
+engine, the infinite slider — is a specification kept verbatim in
+`app/blog/cinema.css` and `components/blog/CinemaScroll.tsx`; the words are
+the journal's own, and the two large figures are live counts from
+`getCatalogueCounts`. The spec's header is replaced by the site's
+`<Navbar tone="dark" overlay />`, rendered by the page and fixed to the
+viewport. Three adaptations let a standalone page live here, and each is the
+smallest one that works:
 - **Every selector is prefixed `.cinema-page`.** Route CSS persists across
   client navigations and `.facts` is already a class elsewhere.
 - **The spec's `html`/`body` rules hang off `html.cinema-html`**, added on
@@ -98,8 +101,8 @@ replaced by that); the ← → buttons keep the sliding. The scene layers are ra
 display face is served by `app/api/fonts/ogg/route.ts`: the spec's font host
 sends no `Access-Control-Allow-Origin`, so a browser refuses it cross-origin
 and the headline falls back to a system serif — the route fetches the same
-file server-side and serves it from this origin. The copy is the spec's
-Mostar text, hard-coded; making it editable is a follow-up.
+file server-side and serves it from this origin. The copy is hard-coded in the
+component; making it editable from the console is a follow-up.
 
 ### Two things the browser taught us
 - **`Intl.formatRange` differs between ICU builds** (Bun: "May 1 – 8", Chrome:

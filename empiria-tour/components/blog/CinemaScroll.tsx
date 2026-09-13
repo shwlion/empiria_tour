@@ -7,21 +7,27 @@
    breaks a layer stack that has to be present and exact from the first frame. */
 
 import { useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { BlogCard } from '@/lib/blog';
 
 /**
- * The journal's cinematic scroll — "Mostar city".
+ * The journal's cinematic scroll.
  *
- * A pixel-exact port of a standalone specification: the DOM tree, every CSS
- * value (app/blog/cinema.css), the scroll-and-pointer engine and the
- * infinite-slider maths are the spec's, verbatim. Two things are this app's:
+ * The composition — layers, every CSS value in app/blog/cinema.css, the
+ * scroll-and-pointer engine and the infinite-slider maths — is a
+ * specification reproduced verbatim. What is this site's:
  *
- *   - The five "sight cards" are the published posts. Kicker is the publish
- *     date, the pin is one of the spec's three icons in rotation, the title and
- *     excerpt are the post's. Clicking a card opens the post at /blog/<slug>;
- *     the spec's click-to-centre is replaced by that, and the ← → buttons keep
- *     the sliding.
+ *   - The words. The spec's Mostar copy is replaced by the journal's own:
+ *     what it is, why the guides write it, and the way from a story to a
+ *     departure. The two large figures are live catalogue counts, so the page
+ *     never quotes a number the catalogue has moved past.
+ *   - The menu. The spec's own header is replaced by the site's dark navbar,
+ *     rendered by the page (it is a server component) and fixed to the
+ *     viewport, so it stays at the top through the whole scroll.
+ *   - The cards are the published posts. Kicker is the publish date, the pin
+ *     one of the spec's three icons in rotation, title and excerpt the post's.
+ *     A click opens the post; the ← → buttons keep the sliding.
  *   - The three card sets the spec builds by cloneNode are rendered directly —
  *     the same DOM, without mutating React's tree.
  *
@@ -73,7 +79,9 @@ const segmentInOut = (s: number, a: number, b: number, c: number, d: number) => 
   return { enter, exit, active: enter * (1 - exit) };
 };
 
-export default function CinemaScroll({ posts }: { posts: BlogCard[] }) {
+export type CatalogueCounts = { tours: number; destinations: number };
+
+export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; counts: CatalogueCounts }) {
   const router = useRouter();
   const rootRef = useRef<HTMLElement | null>(null);
   const sectionRef = useRef<HTMLElement | null>(null);
@@ -91,6 +99,9 @@ export default function CinemaScroll({ posts }: { posts: BlogCard[] }) {
 
     const html = document.documentElement;
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    // Rendered by the page, not by this component: a server component, fixed
+    // to the viewport. Looked up once; only its rect is read per frame.
+    const nav = document.querySelector<HTMLElement>('.cinema-nav nav');
     html.classList.add('cinema-html');
 
     // ── State ────────────────────────────────────────────────────────────────
@@ -143,7 +154,16 @@ export default function CinemaScroll({ posts }: { posts: BlogCard[] }) {
       const backScale = 0.76 + progress * 0.2 + frame2.enter * 0.18 + frame3.enter * 0.16;
       const sharedHeroY = progress * -74;
       const sharedHeroScale = progress * 0.23;
-      const sightsScreenTop = Math.min(220, Math.max(112, window.innerHeight * 0.19)) - 50;
+      // The spec's row height, then no higher than the site navbar allows. The
+      // spec's own header was shorter and static; ours is a fixed plate whose
+      // bottom edge is measured rather than assumed, so a change to the navbar
+      // never puts a card under it. On a 700px-tall laptop the spec's formula
+      // alone would.
+      const navBottom = nav ? nav.getBoundingClientRect().bottom + 16 : 0;
+      const sightsScreenTop = Math.max(
+        Math.min(220, Math.max(112, window.innerHeight * 0.19)) - 50,
+        navBottom
+      );
       const sightsParentTop = window.innerHeight - (window.innerHeight - sightsScreenTop) / backScale;
 
       set('--mx', (reduceMotion.matches ? 0 : mouseX).toFixed(4));
@@ -297,31 +317,20 @@ export default function CinemaScroll({ posts }: { posts: BlogCard[] }) {
   }, [posts]);
 
   const open = (slug: string) => router.push(`/blog/${slug}`);
+  // A count of zero is a catalogue with nothing on sale, not a fact worth
+  // setting in 4rem type. Both or neither.
+  const showFacts = counts.tours > 0 && counts.destinations > 0;
 
   return (
     <main className="site-shell cinema-page" ref={rootRef}>
-      <section className="cinema-scroll" id="cinema" aria-label="Mostar cinematic scroll story" ref={sectionRef}>
+      <section className="cinema-scroll" id="cinema" aria-label="Empiria Tours journal" ref={sectionRef}>
         <div className="stage">
           <div className="world">
             <img className="scene-img sky-img" src={SCENE.sky} alt="" />
 
-            <header className="site-header" aria-label="Primary navigation">
-              <a className="site-logo" href="#cinema">Bosnia and Herzegovina</a>
-              <nav className="site-nav" aria-label="Main menu">
-                <a href="#cinema">Intro</a>
-                <a href="#bridge">Bridge</a>
-                <a href="#bazaar">Bazaar</a>
-                <a href="#routes">Routes</a>
-              </nav>
-              <button className="language-switcher" type="button" aria-label="Change language">
-                <span>EN</span>
-                <span aria-hidden="true">⌄</span>
-              </button>
-            </header>
-
             <div className="back-stack">
               <img className="scene-img back-img back-four" src={SCENE.four} alt="" />
-              <section className="sights-slider" aria-label="Mostar sights slider">
+              <section className="sights-slider" aria-label="Latest posts">
                 <div className="sights-track" ref={trackRef}>
                   {posts.length > 0 &&
                     Array.from({ length: SETS }, (_, setIndex) =>
@@ -331,7 +340,7 @@ export default function CinemaScroll({ posts }: { posts: BlogCard[] }) {
                           className="sight-card"
                           tabIndex={0}
                           role="button"
-                          aria-label={`Open ${post.title} card`}
+                          aria-label={`Open ${post.title}`}
                           data-sight-index={setIndex * posts.length + cardIndex}
                           onClick={() => open(post.slug)}
                           onKeyDown={(event) => {
@@ -359,17 +368,20 @@ export default function CinemaScroll({ posts }: { posts: BlogCard[] }) {
             </div>
 
             {posts.length > 0 && (
-              <div className="sights-controls" aria-label="Slider controls" ref={controlsRef}>
-                <button className="sight-nav sight-prev" type="button" aria-label="Previous sight" ref={prevRef}>
+              <div className="sights-controls" aria-label="Post controls" ref={controlsRef}>
+                <button className="sight-nav sight-prev" type="button" aria-label="Previous post" ref={prevRef}>
                   ←
                 </button>
-                <button className="sight-nav sight-next" type="button" aria-label="Next sight" ref={nextRef}>
+                <button className="sight-nav sight-next" type="button" aria-label="Next post" ref={nextRef}>
                   →
                 </button>
               </div>
             )}
 
-            <h1 className="hero-title">MOSTAR</h1>
+            {/* The spec's 14rem hero title is dropped at the client's request:
+                the site navbar names the page, and the photograph does the
+                rest. The engine's --title-* writes stay, harmless, so a title
+                could return without touching the maths. */}
 
             <img className="scene-img splitframe-img splitframe-left" src={SCENE.splitLeft} alt="" />
             <img className="scene-img splitframe-img splitframe-right" src={SCENE.splitRight} alt="" />
@@ -378,46 +390,48 @@ export default function CinemaScroll({ posts }: { posts: BlogCard[] }) {
             <div className="shade" />
           </div>
 
-          <section className="intro-copy" aria-label="Mostar overview">
+          <section className="intro-copy" aria-label="About the journal">
             <p>
-              A stone arch, emerald water, and a compact old city made for slow mornings, late light,
-              and one unforgettable crossing.
+              Notes from the road, by the people who run the trips: the caf&eacute; that opens at six,
+              the ferry worth waiting for, the walk to take once the coaches have gone.
             </p>
-            <div className="hero-tags" aria-label="Mostar highlights">
-              <span>Old Bridge</span>
-              <span>Neretva River</span>
-              <span>UNESCO old city</span>
+            <div className="hero-tags" aria-label="Where we go">
+              <span>Greece</span>
+              <span>Italy</span>
+              <span>Small groups</span>
             </div>
           </section>
 
-          <section className="story-panel story-panel-bridge" aria-label="Old Bridge details">
-            <h2>The bridge is the city&rsquo;s compass.</h2>
+          <section className="story-panel story-panel-bridge" aria-label="Why we write">
+            <h2>Every trip starts as a story.</h2>
             <p>
-              Stari Most links the banks of the Neretva and anchors a historic quarter shaped by
-              Ottoman, Mediterranean, and European layers.
+              Our guides write down what the brochures leave out &mdash; where the light lands at
+              seven, which table to ask for, and when to skip the queue and swim instead.
             </p>
-            <dl className="facts">
-              <div>
-                <dt>1566</dt>
-                <dd>Original bridge completed</dd>
-              </div>
-              <div>
-                <dt>2005</dt>
-                <dd>Old Bridge Area inscribed by UNESCO</dd>
-              </div>
-            </dl>
+            {showFacts && (
+              <dl className="facts">
+                <div>
+                  <dt>{counts.tours}</dt>
+                  <dd>{counts.tours === 1 ? 'Tour on sale right now' : 'Tours on sale right now'}</dd>
+                </div>
+                <div>
+                  <dt>{counts.destinations}</dt>
+                  <dd>{counts.destinations === 1 ? 'Place we write from' : 'Places we write from'}</dd>
+                </div>
+              </dl>
+            )}
           </section>
 
-          <section className="story-panel story-panel-bazaar" aria-label="Old town details">
-            <h2>The bazaar keeps Mostar close.</h2>
+          <section className="story-panel story-panel-bazaar" aria-label="From a story to a departure">
+            <h2>Read it. Then go.</h2>
             <p>
-              Stone lanes, mosque courtyards, copper stalls, and riverside coffee stay within a short
-              walk of Stari Most.
+              Every post sits beside a real departure &mdash; dates, seats and an all-in price. When a
+              story makes you want to be there, the trip is one tap away.
             </p>
-            <button className="note-button" type="button">
-              <span aria-hidden="true">↗</span>
-              <span>Open old town notes</span>
-            </button>
+            <Link href="/tours" className="note-button">
+              <span aria-hidden="true">&#8599;</span>
+              <span>See the tours</span>
+            </Link>
           </section>
         </div>
       </section>

@@ -205,14 +205,15 @@ three repos. It has drifted five times.
 
 ### Storefront
 
-**`/blog` is a cinematic scroll story (12 September 2026).** The index is the
-"Mostar city" composition — a specification reproduced verbatim in
-`app/blog/cinema.css` and `components/blog/CinemaScroll.tsx` — and the
-published posts are its slider cards: kicker = publish date, pin = one of the
-spec's three icons in rotation, title and excerpt the post's. A card opens the
-post at `/blog/[slug]`, which is unchanged. The latest twelve posts feed the
-slider; there is no pagination on the index any more. The shell copy is the
-spec's Mostar text, hard-coded; an editor for it is a follow-up.
+**`/blog` is a cinematic scroll story (12 September 2026).** The index is a
+scroll composition — a specification reproduced verbatim in
+`app/blog/cinema.css` and `components/blog/CinemaScroll.tsx` — under the site's
+dark navbar, and the published posts are its slider cards: kicker = publish
+date, pin = one of the spec's three icons in rotation, title and excerpt the
+post's. A card opens the post at `/blog/[slug]`, which is unchanged. The latest
+twelve posts feed the slider; there is no pagination on the index any more. The
+copy is the journal's own, hard-coded, with two live catalogue counts; an
+editor for it is a follow-up.
 
 
 | Route | Notes |

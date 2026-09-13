@@ -1,34 +1,36 @@
 import type { Metadata } from 'next';
+import Navbar from '@/components/Navbar';
 import CinemaScroll from '@/components/blog/CinemaScroll';
 import { getPublishedPosts } from '@/lib/blog';
+import { getCatalogueCounts } from '@/lib/catalogue';
 import { absoluteUrl } from '@/lib/seo';
 import './cinema.css';
 
 /**
  * The journal — a cinematic scroll story whose slider cards are the posts.
  *
- * The composition, its copy and every value are a specification reproduced
+ * The composition and every value in it are a specification reproduced
  * verbatim (components/blog/CinemaScroll.tsx, app/blog/cinema.css). What this
- * page decides is only what feeds it: the latest page of published posts,
- * newest first. A card opens its post at /blog/[slug], which is unchanged.
+ * page decides is what feeds it: the latest page of published posts, newest
+ * first, and two live catalogue counts for the copy. A card opens its post at
+ * /blog/[slug], which is unchanged.
  *
- * No Navbar or Footer: the story carries its own header inside the sticky
- * stage, and the site's sticky bar above a 100vh sticky stage would fight it.
+ * The site's dark navbar sits over the story. It is fixed to the viewport, so
+ * it stays at the top through the whole scroll, and `overlay` drops the
+ * in-flow spacer the inner pages use — the hero belongs under it. No footer:
+ * the page ends on the posts, which is where it should end.
  */
 
 // Posts are written and taken down from two consoles, so this page must not be
 // frozen at build time. Five minutes matches the policy pages.
 export const revalidate = 300;
 
-const TITLE = 'Mostar city';
-const DESCRIPTION = 'A cinematic three-screen scroll story for Mostar city.';
+const TITLE = 'Journal — Empiria Tours';
+const DESCRIPTION = 'Notes from the road, written by the people who run the trips.';
 
 export const metadata: Metadata = {
-  // `absolute`, or the root template appends " · Empiria Tours" and the
-  // specification's title is no longer the specification's title.
   title: { absolute: TITLE },
   description: DESCRIPTION,
-  icons: { icon: 'data:,' },
   alternates: { canonical: absoluteUrl('/blog') },
   openGraph: {
     title: TITLE,
@@ -39,6 +41,15 @@ export const metadata: Metadata = {
 };
 
 export default async function BlogIndex() {
-  const { posts } = await getPublishedPosts(1);
-  return <CinemaScroll posts={posts} />;
+  const [{ posts }, counts] = await Promise.all([getPublishedPosts(1), getCatalogueCounts()]);
+  return (
+    <>
+      {/* The wrapper is how the composition measures the navbar: the cards'
+          row must clear it, and the plate's height is the navbar's to change. */}
+      <div className="cinema-nav">
+        <Navbar tone="dark" overlay />
+      </div>
+      <CinemaScroll posts={posts} counts={counts} />
+    </>
+  );
 }

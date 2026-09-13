@@ -5,6 +5,8 @@
  * so a standalone page can live inside this app without touching anything
  * else, and each is the smallest change that achieves it:
  *
+ *   0. The spec's header rules are gone: the site's own navbar (fixed to the
+ *      viewport, rendered by the page) takes its place at the top.
  *   1. Every selector is prefixed with `.cinema-page`. CSS imported by a route
  *      persists across client-side navigations, and `.facts` is already a class
  *      on two other components; an unscoped rule would restyle them.
@@ -85,35 +87,10 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
   overflow: hidden; isolation: isolate; background: #7fb4d4;
 }
 .cinema-page .world, .cinema-page .back-stack, .cinema-page .sky-img, .cinema-page .shade,
-.cinema-page .scene-img, .cinema-page .site-header, .cinema-page .sights-slider,
-.cinema-page .sights-controls, .cinema-page .hero-title, .cinema-page .intro-copy,
+.cinema-page .scene-img, .cinema-page .sights-slider,
+.cinema-page .sights-controls, .cinema-page .intro-copy,
 .cinema-page .story-panel { position: absolute; }
 .cinema-page .world { inset: 0; overflow: hidden; background: #79b7dd; }
-
-/* ── Header (z 10) ──────────────────────────────────────────────────────── */
-
-.cinema-page .site-header {
-  top: 0; left: 0; right: 0; z-index: 10;
-  display: grid; grid-template-columns: minmax(260px, 1fr) auto minmax(260px, 1fr);
-  align-items: center; gap: 32px; padding: 32px;
-  color: rgba(253, 241, 225, 0.86); pointer-events: auto;
-}
-.cinema-page .site-logo {
-  justify-self: start;
-  font-family: "Ogg Medium", serif; font-size: 24px; line-height: 1; font-weight: 500;
-  color: rgba(253, 241, 225, 0.92); text-decoration: none; white-space: nowrap;
-}
-.cinema-page .site-nav { display: flex; align-items: center; justify-content: center; gap: clamp(24px, 2.2vw, 44px); }
-.cinema-page .site-nav a, .cinema-page .language-switcher {
-  color: rgba(253, 241, 225, 0.86); font-weight: 700; line-height: 1;
-  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.2);
-}
-.cinema-page .site-nav a { font-size: 20px; font-weight: 400; text-decoration: none; }
-.cinema-page .language-switcher {
-  justify-self: end; display: inline-flex; align-items: center; justify-content: center;
-  gap: 5px; padding: 0; background: transparent; font-size: 16px; cursor: pointer;
-}
-.cinema-page .language-switcher span { display: inline-flex; line-height: 1; }
 
 /* ── Scene images ───────────────────────────────────────────────────────── */
 
@@ -217,17 +194,6 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
   box-shadow: 0 18px 36px rgba(0, 0, 0, 0.2); cursor: pointer;
 }
 
-/* ── Hero title (z 3) ───────────────────────────────────────────────────── */
-
-.cinema-page .hero-title {
-  left: 50%; top: clamp(122px, 19vh, 205px); z-index: 3; width: min(94vw, 1780px);
-  margin: 0; color: #fdf1e1;
-  font-family: "Ogg Medium", serif; font-size: 14rem; font-weight: 500; line-height: 0.78;
-  text-align: center; text-shadow: none;
-  transform: translate3d(-50%, var(--title-y), 0) scale(var(--title-scale));
-  opacity: var(--title-opacity); will-change: transform, opacity;
-}
-
 /* ── Bridge (z 4), splitframes (z 6), frame two (z 5) ───────────────────── */
 
 .cinema-page .bridge-img {
@@ -303,8 +269,10 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
 .cinema-page .story-panel-bridge {
   top: 60%; opacity: var(--panel2-opacity); transform: translate3d(-50%, var(--panel2-y), 0);
 }
+/* 36%, not the spec's 29%: with the site navbar in place of the spec's
+   shorter header, 29% put "Read it. Then go." a few pixels under the plate. */
 .cinema-page .story-panel-bazaar {
-  top: 29%; opacity: var(--panel3-opacity); transform: translate3d(-50%, var(--panel3-y), 0);
+  top: 36%; opacity: var(--panel3-opacity); transform: translate3d(-50%, var(--panel3-y), 0);
 }
 .cinema-page .facts {
   display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 86px;
@@ -324,16 +292,16 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
   box-shadow: 0 16px 34px rgba(0, 0, 0, 0.18); pointer-events: auto; cursor: pointer;
 }
 .cinema-page .note-button span:first-child { font-size: 1.25rem; line-height: 1; }
+/* The pill is a link to the catalogue now, not the spec's inert button. */
+.cinema-page a.note-button { text-decoration: none; font-weight: 500; }
 
 /* ── Media queries ──────────────────────────────────────────────────────── */
 
 @media (max-width: 1500px) {
-  .cinema-page .hero-title { font-size: 11rem; }
   .cinema-page .story-panel h2 { font-size: 4.1rem; }
 }
 
 @media (max-width: 1100px) {
-  .cinema-page .hero-title { top: 15vh; font-size: 7.5rem; }
   .cinema-page .bridge-img { width: 138vw; }
   .cinema-page .frame-two-img { width: 132vw; }
   .cinema-page .story-panel h2 { font-size: 3.2rem; }
@@ -350,7 +318,6 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
     gap: 18px; overflow-x: auto; scrollbar-width: none;
   }
   .cinema-page .site-nav::-webkit-scrollbar { display: none; }
-  .cinema-page .hero-title { top: 16vh; font-size: 4.5rem; }
   .cinema-page .bridge-img { bottom: 2vh; width: 190vw; }
   .cinema-page .frame-two-img { width: 176vw; }
   .cinema-page .intro-copy { bottom: 42px; }
@@ -358,7 +325,7 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
   .cinema-page .hero-tags { gap: 8px; }
   .cinema-page .hero-tags span { min-height: 38px; padding: 0 16px; font-size: 0.88rem; }
   .cinema-page .story-panel { top: 42%; }
-  .cinema-page .story-panel-bazaar { top: 26%; }
+  .cinema-page .story-panel-bazaar { top: 33%; }
   .cinema-page .story-panel h2 { font-size: 2.45rem; }
   .cinema-page .facts { gap: 18px; margin-top: 34px; }
   .cinema-page .facts dt { font-size: 2.5rem; }
@@ -374,7 +341,7 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
 
 @media (prefers-reduced-motion: reduce) {
   html.cinema-html { scroll-behavior: auto; }
-  .cinema-page .scene-img, .cinema-page .back-stack, .cinema-page .hero-title,
+  .cinema-page .scene-img, .cinema-page .back-stack,
   .cinema-page .intro-copy, .cinema-page .story-panel, .cinema-page .sights-track,
   .cinema-page .sights-slider { transition: none; }
 }
