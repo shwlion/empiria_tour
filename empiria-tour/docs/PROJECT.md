@@ -39,8 +39,10 @@ person you are working with may have a reason to jump the queue, and items 2 and
    are in Exhibit A and nowhere in this repo**, so ask before guessing.
 5. **A cron for `/api/email/tick`**, without which the time-based Part C
    messages never fire even once DNS lands.
-6. **B4 customers, then B5 reporting** (blocked on Empiria entering supplier
-   costs), then B3's tail — refunds, cancellation, amending a booking.
+6. **B3's tail** — refunds, cancellation, amending a booking — designed
+   together with group 3a's revenue-share transfers. (B4 customers and B5
+   reporting are built; B5's statement fills in as supplier costs are
+   entered.)
 7. **Installments.** The largest single item, and it changes the payment
    architecture rather than extending it. **Do not start before the commercial
    question in item 3 is answered** — it may not be paid work.
@@ -49,6 +51,19 @@ person you are working with may have a reason to jump the queue, and items 2 and
    built; the last two wait only for Empiria's keys.
 
 ## Done since this list was last cut
+
+**B4 customers, B5 reporting, B6's remainder (13 Sep).** Migration 0018:
+the `customer_directory` view (every traveller account plus every guest who
+booked, one row each, guest bookings attached to a later account by email),
+`move_destination` (a slug or parent change rewrites every descendant's
+path in one statement, refuses a cycle), and three receipt-wording columns
+on the settings singleton. In the console: `/dashboard/customers` with
+search, record, edit and CSV; `/dashboard/reports` with the six periods,
+the eight metrics, two SVG charts, by-tour and by-destination tables, the
+§4.6 statement with its caveats printed, and CSV; Content → Destinations
+(the tree, SEO fields, publish state) and Content → Collections (membership
+and the home page's featured row); Settings → Documents for the receipt's
+title, intro and closing note, rendered by the storefront's receipt.
 
 **A8 — saved traveller profiles (13 Sep).** `saved_travellers` (migration
 0019, proved against the live database inside the migration: one row per
@@ -227,7 +242,6 @@ form or unpublish until it is filled.
 
 - **The three missing policy pages** — a route, a `REQUIRED_PAGES` entry and a
   footer link each. Blocked only on which three Exhibit A names.
-- **B4 customers**, **B5 reporting** (fully specified — §4.6(b) gives the formula).
 - **B3's tail** — refunds, cancellation, amending a booking, the audit-trail view.
 - **Part C's unwired triggers** — 7 of 13 are wired; four need their triggering
   action (B3's tail), two need the installment schedule.
@@ -242,11 +256,13 @@ form or unpublish until it is filled.
 
 ## Module count against the revised Exhibit A
 
-**31 of 43.** Add-to-calendar and social sharing, the two Revision 1 additions
+**35 of 43.** Add-to-calendar and social sharing, the two Revision 1 additions
 that were code rather than content, are both built. Part A: 4 done, 4
 substantial, **none unstarted** — A7 and A8 are both complete, including
 closure and, since 13 Sep, saved traveller profiles (migration 0019) that
-pre-fill the booking flow. Part B: 1 done, 3 substantial, 2 to start. Part C:
+pre-fill the booking flow. Part B: B4 and B5 done and B6 complete but for ad placements (closed by
+the client's acceptance of the live Events section), B1 and B2 substantial,
+B3's tail open. Part C:
 machinery done, nothing sending. Part D: mechanism done, receipts done,
 wording left — every block renders on the receipt, and every one of them is
 empty until Empiria writes it. Part E: 1 entity short (the installment

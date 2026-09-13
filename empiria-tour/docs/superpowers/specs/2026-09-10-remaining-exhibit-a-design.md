@@ -225,7 +225,7 @@ designed together with refund issuance.
 
 - Migrations, renumbered after 0014 took the static-page seed:
   `0015_promotion_usage` (done), `0016_revenue_share` (group 3a),
-  `0017_cancellation_and_amendment`, `0018` (freed: no ad-placements table),
+  `0017_cancellation_and_amendment`, `0018_customers_destinations_documents` (done),
   `0019_saved_travellers` (done) — each proved with a `do $$ … $$` harness and its
   test rows deleted.
 - `lib/database.types.ts` regenerated and copied to **all three repos in the
@@ -243,9 +243,9 @@ designed together with refund issuance.
 | 2 | Promotion codes (A5, B6, pricing) | 0015 | Done |
 | 3a | Revenue share at source (see above) | 0016 | Before 3 |
 | 3 | B3 tail + A7 cancellation | 0017 | Unlocks 4 Part C triggers |
-| 4 | B4 Customers | — | |
-| 5 | B5 Reporting + Revenue Share | — | Lights up when supplier costs are entered |
-| 6 | B6 remainder — destinations, collections, receipt template, staff invitation | — | |
+| 4 | B4 Customers | 0018 (view) | Done (13 Sep) |
+| 5 | B5 Reporting + Revenue Share | — | Done (13 Sep); the statement prints its caveats until supplier costs and processor fees are complete |
+| 6 | B6 remainder — destinations, collections, receipt template, staff invitation | 0018 | Done (13 Sep); staff invitation had existed already |
 | 7 | Ad placements | — | Done (13 Sep): the client accepted the live Empiria Events section on the home page (`EventsSpotlight`, real events from the Events API) as A2's placement; no `ad_placements` table and no admin editor for it |
 | 8 | B2 bulk departures by recurrence | — | |
 | 9 | A8 saved traveller profiles | 0019 | Done (13 Sep) |

@@ -52,6 +52,10 @@ export type SellerIdentity = {
   statutoryNotice: string | null;
   contactEmail: string | null;
   contactPhone: string | null;
+  /** B6 (0018): Empiria's wording around the facts. Absent, the renderer's defaults apply. */
+  receiptTitle?: string | null;
+  receiptIntro?: string | null;
+  receiptFooter?: string | null;
 };
 
 export type ReceiptData = {
@@ -143,7 +147,7 @@ export async function loadReceipt(
         .order('created_at'),
       db
         .from('platform_settings')
-        .select('company_name, registration_number, statutory_notice, contact_email, contact_phone')
+        .select('company_name, registration_number, statutory_notice, contact_email, contact_phone, receipt_title, receipt_intro, receipt_footer')
         .maybeSingle(),
       db
         .from('disclosure_placements')
@@ -207,6 +211,9 @@ export async function loadReceipt(
       statutoryNotice: settings?.statutory_notice ?? null,
       contactEmail: settings?.contact_email ?? null,
       contactPhone: settings?.contact_phone ?? null,
+      receiptTitle: settings?.receipt_title ?? null,
+      receiptIntro: settings?.receipt_intro ?? null,
+      receiptFooter: settings?.receipt_footer ?? null,
     },
     disclosures,
     producedAt: paid.length > 0 ? paid[paid.length - 1].createdAt : booking.created_at,

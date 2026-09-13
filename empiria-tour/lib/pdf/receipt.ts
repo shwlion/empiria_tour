@@ -114,7 +114,9 @@ export function renderReceipt(data: ReceiptData): Uint8Array {
     size: 15,
     color: seller ? INK : FLAME,
   });
-  doc.textRight(RIGHT, f.y, 'RECEIPT', { font: 'bold', size: 11, color: STONE, tracking: 1.6 });
+  // B6: the document's own title is Empiria's to set; "Receipt" until they do.
+  const title = (data.seller.receiptTitle ?? '').trim() || 'Receipt';
+  doc.textRight(RIGHT, f.y, title.toUpperCase(), { font: 'bold', size: 11, color: STONE, tracking: 1.6 });
   f.gap(13);
 
   // §2.2: the seller is the merchant of record and must say who it is. While
@@ -129,6 +131,12 @@ export function renderReceipt(data: ReceiptData): Uint8Array {
   for (const line of sellerLines) {
     doc.text(MARGIN, f.y, line, { size: 8.5, color: STONE });
     f.gap(11);
+  }
+  // B6: a line under the masthead — a thank-you, or where to write.
+  const intro = (data.seller.receiptIntro ?? '').trim();
+  if (intro) {
+    f.gap(4);
+    f.paragraph(intro);
   }
 
   f.gap(6);
@@ -232,6 +240,13 @@ export function renderReceipt(data: ReceiptData): Uint8Array {
   for (const d of data.disclosures) {
     f.heading(d.name);
     f.paragraph(d.body);
+  }
+
+  // B6: Empiria's closing note — how to pay a balance, what to bring.
+  const footer = (data.seller.receiptFooter ?? '').trim();
+  if (footer) {
+    f.heading('Please note');
+    f.paragraph(footer);
   }
 
   if (data.seller.statutoryNotice) {
