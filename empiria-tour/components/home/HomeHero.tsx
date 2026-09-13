@@ -260,7 +260,7 @@ export default function HomeHero({ cards, intro }: { cards: ShowcaseCard[]; intr
         </>
       )}
 
-      <div className="hero-grid relative z-10 mx-auto grid w-full max-w-[1240px] items-center gap-14 px-6 pb-16 pt-12 sm:px-10 lg:min-h-[min(80vh,900px)] lg:grid-cols-[1fr_1.05fr] lg:gap-8 lg:pb-20">
+      <div className="hero-grid relative z-10 mx-auto grid w-full max-w-[1240px] items-center gap-14 px-6 pb-16 pt-12 sm:px-10 lg:min-h-[min(80vh,900px)] lg:grid-cols-[1.1fr_1fr] lg:gap-8 lg:pb-20">
         <div className="max-w-xl">
           <div hidden={open}>{intro}</div>
           <div hidden={!open} className="hero-trip">
@@ -298,7 +298,7 @@ export default function HomeHero({ cards, intro }: { cards: ShowcaseCard[]; intr
         </div>
 
         {cards.length > 0 && (
-          <div className="relative pr-10 pt-24 sm:pr-16 sm:pt-28 lg:pl-6 lg:pr-24 lg:pt-32">
+          <div className="relative pr-10 pt-24 sm:pr-16 sm:pt-28 lg:pl-6 lg:pr-14 lg:pt-32">
             <p className="deck-caption fade-in absolute left-0 top-0 font-mono text-[11px] font-medium uppercase tracking-label text-stone lg:left-6" style={delay(420)}>
               What a trip could be · tap a postcard
             </p>

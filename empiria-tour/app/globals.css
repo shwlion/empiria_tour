@@ -150,6 +150,13 @@ body {
 .search-seg:focus-within {
   border-color: var(--teal);
 }
+/* A chosen value longer than its segment ("September 2027") ends in an
+   ellipsis rather than mid-letter. The segments are never narrower than their
+   default values: the Where/When minimums and the Who width in SearchBar.tsx
+   are those values plus the native arrow. */
+.search-seg select {
+  text-overflow: ellipsis;
+}
 
 /* Image placeholder while a package has no photography yet. */
 .img-fallback {

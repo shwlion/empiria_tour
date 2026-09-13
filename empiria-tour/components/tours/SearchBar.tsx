@@ -90,7 +90,7 @@ export default function SearchBar({
         compact ? 'p-1.5' : 'p-2'
       } ${tone === 'dark' ? 'shadow-lift-panel' : ''}`}
     >
-      <div className="search-seg flex-1 px-4 py-3 md:px-5">
+      <div className="search-seg flex-1 px-4 py-3 md:min-w-[124px] md:px-4">
         <label className={segLabel} htmlFor="search-where">Where</label>
         <select
           id="search-where"
@@ -108,7 +108,7 @@ export default function SearchBar({
         </select>
       </div>
 
-      <div className="search-seg flex-1 px-4 py-3 md:px-5">
+      <div className="search-seg flex-1 px-4 py-3 md:min-w-[130px] md:px-4">
         <label className={segLabel} htmlFor="search-when">When</label>
         <select
           id="search-when"
@@ -123,7 +123,7 @@ export default function SearchBar({
         </select>
       </div>
 
-      <div className="search-seg px-4 py-3 md:w-44 md:px-5">
+      <div className="search-seg px-4 py-3 md:w-[130px] md:px-4">
         <label className={segLabel} htmlFor="search-who">Who</label>
         <select
           id="search-who"
@@ -139,13 +139,13 @@ export default function SearchBar({
         </select>
       </div>
 
-      <div className="flex items-center justify-end p-2 md:p-1.5">
+      <div className="flex items-center justify-end p-2 md:p-0">
         <button
           type="submit"
-          className="flex h-12 w-full items-center justify-center gap-2 rounded-field bg-flame px-6 font-mono text-[11px] font-bold uppercase tracking-label text-white transition-colors hover:bg-ember md:w-auto"
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-field bg-flame px-5 font-mono text-[11px] font-bold uppercase tracking-label text-white transition-colors hover:bg-ember md:w-auto"
         >
           <Search className="h-4 w-4" aria-hidden="true" />
-          <span className="md:sr-only lg:not-sr-only">Search</span>
+          <span className="md:sr-only xl:not-sr-only">Search</span>
         </button>
       </div>
     </form>
