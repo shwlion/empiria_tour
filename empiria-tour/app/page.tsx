@@ -7,7 +7,6 @@ import Footer from '@/components/Footer';
 import TourCard from '@/components/tours/TourCard';
 import HomeHero from '@/components/home/HomeHero';
 import HeroIntro from '@/components/home/HeroIntro';
-import HorizontalGallery from '@/components/home/HorizontalGallery';
 import Reveal from '@/components/home/Reveal';
 import { type DestinationOption } from '@/components/tours/SearchBar';
 import { absoluteUrl } from '@/lib/seo';
@@ -202,26 +201,22 @@ export default async function TourHome({
             {/* ── Featured ─────────────────────────────────────────────────── */}
             {featured.length > 0 && (
                 <section className="mx-auto w-full max-w-6xl px-5 py-16">
-                    <HorizontalGallery
-                        label="Featured tours"
-                        header={
-                            <SectionHead
-                                eyebrow="Chosen by us"
-                                title="Where we would go first"
-                                href="/tours"
-                                linkLabel="All tours"
-                            />
-                        }
-                    >
+                    <SectionHead
+                        eyebrow="Chosen by us"
+                        title="Where we would go first"
+                        href="/tours"
+                        linkLabel="All tours"
+                    />
+                    {/* A plain grid, like every other card row on this page. This
+                        was a pinned horizontal gallery; the sideways scroll was
+                        removed at the client's request. */}
+                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3" data-stagger>
                         {featured.map((p, i) => (
-                            <div
-                                key={p.id}
-                                className="h-auto w-full shrink-0 snap-start sm:w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-3rem)/3)]"
-                            >
+                            <div key={p.id} data-reveal className="h-full">
                                 <TourCard pkg={p} priority={i < 3} />
                             </div>
                         ))}
-                    </HorizontalGallery>
+                    </div>
                 </section>
             )}
 

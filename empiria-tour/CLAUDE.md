@@ -64,6 +64,9 @@ threads it into its menus. The footer is white sitewide.
   stack is server-rendered from `lib/deck.ts` (slot maths, elastic curve,
   timeline — pure, tested) and animated by `useDeckEngine.ts`, a Web
   Animations API port of the GSAP CardSwap component: no dependency added.
+  (The one GSAP consumer, the pinned horizontal "Where we would go first"
+  gallery, was replaced by a plain grid at the client's request on 13 Sep
+  2026; `gsap` is no longer a dependency at all.)
 - **Tapping a postcard** expands its photo from the card rect to the viewport
   (a FLIP on a fixed `.zoom-layer`), the section becomes `position: fixed`
   (`html.takeover`), scroll is locked, everything outside is `inert`, the
