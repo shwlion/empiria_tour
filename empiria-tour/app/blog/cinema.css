@@ -297,13 +297,18 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
 
 .cinema-page .intro-copy {
   left: 50%; bottom: clamp(56px, 28vh, 400px); z-index: 9;
-  width: min(560px, calc(100vw - 40px)); text-align: center;
+  width: min(680px, calc(100vw - 40px)); text-align: center;
   transform: translate3d(-50%, var(--intro-copy-y), 0);
   opacity: var(--intro-copy-opacity); will-change: transform, opacity;
 }
+/* Larger than the spec's 1.18rem and with a heavier shadow, at the client's
+   request: on a big screen the line sat small against a busy photograph.
+   Scales with the viewport between 1.3rem and 2.1rem. */
 .cinema-page .intro-copy p {
-  margin: 0 auto; max-width: 560px; color: #fdf1e1; font-size: 1.18rem; font-weight: 500;
-  line-height: 1.18; text-shadow: 0 2px 18px rgba(0, 0, 0, 0.42);
+  margin: 0 auto; max-width: 680px; color: #fdf1e1;
+  font-size: clamp(1.3rem, 1.4vw + 0.4rem, 2.1rem); font-weight: 600;
+  line-height: 1.3; letter-spacing: 0.005em;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.55), 0 6px 28px rgba(0, 0, 0, 0.55);
 }
 .cinema-page .hero-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 26px; }
 .cinema-page .hero-tags span {
@@ -383,7 +388,8 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
   .cinema-page .bridge-img { bottom: 2vh; width: 190vw; }
   .cinema-page .frame-two-img { width: 176vw; }
   .cinema-page .intro-copy { bottom: 42px; }
-  .cinema-page .intro-copy p, .cinema-page .story-panel p { font-size: 1rem; }
+  .cinema-page .intro-copy p { font-size: 1.15rem; }
+  .cinema-page .story-panel p { font-size: 1rem; }
   .cinema-page .hero-tags { gap: 8px; }
   .cinema-page .hero-tags span { min-height: 38px; padding: 0 16px; font-size: 0.88rem; }
   .cinema-page .story-panel { top: 42%; }
