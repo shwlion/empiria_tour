@@ -6,7 +6,11 @@
  * else, and each is the smallest change that achieves it:
  *
  *   0. The spec's header rules are gone: the site's own navbar (fixed to the
- *      viewport, rendered by the page) takes its place at the top.
+ *      viewport, rendered by the page) takes its place at the top. The hero
+ *      title is gone too, and the three sideways movements — pointer
+ *      parallax, the frames parting, the cards flying in — are removed in
+ *      the engine; the row fades in, so `.sights-slider` reads
+ *      `--sights-opacity` where the spec pinned it at 1.
  *   1. Every selector is prefixed with `.cinema-page`. CSS imported by a route
  *      persists across client-side navigations, and `.facts` is already a class
  *      on two other components; an unscoped rule would restyle them.
@@ -43,7 +47,6 @@ html.cinema-html { min-height: 100%; scroll-behavior: smooth; background: #0b111
 html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; background: #0b1110; }
 
 .cinema-page {
-  --mx: 0; --my: 0;
   --back-opacity: 1; --back-x: 0px; --back-y: 0px; --back-scale: 0.76;
   --four-y: 10vh; --four-scale: 0.78;
   --bazaar-y: 20vh;
@@ -57,12 +60,13 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
   --bridge-width: 67.2vw; --bridge-scale: 1.02;
   --split-left-x: -50%;  --split-left-y: 0px;  --split-left-scale: 1;
   --split-right-x: -50%; --split-right-y: 0px; --split-right-scale: 1;
+  --split-opacity: 1;
   --frame2-opacity: 0; --frame2-x: -50%; --frame2-y: -50%; --frame2-scale: 1.06;
   --intro-copy-y: 0px; --intro-copy-opacity: 1;
   --panel2-opacity: 0; --panel2-y: calc(-50% + 58px);
   --panel3-opacity: 0; --panel3-y: calc(-50% + 58px);
   --sights-opacity: 0; --sights-controls-opacity: 0; --sights-y: 0px;
-  --sights-enter-x: 420vw; --sights-visibility: hidden;
+  --sights-visibility: hidden;
   --sights-shift: 0px; --sights-scale: 1;
   --sights-top: clamp(112px, 19vh, 220px);
   --sights-screen-top: clamp(112px, 19vh, 220px);
@@ -131,9 +135,11 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
 
 .cinema-page .sights-slider {
   left: 0; right: 0; top: var(--sights-top); z-index: 2; padding: 0;
-  opacity: 1;
+  /* The spec slid the row in from 420vw and kept opacity at 1. At the
+     client's request the cards fade in where they sit instead. */
+  opacity: var(--sights-opacity);
   visibility: var(--sights-visibility);
-  transform: translate3d(var(--sights-enter-x), var(--sights-y), 0) scale(var(--sights-scale));
+  transform: translate3d(0, var(--sights-y), 0) scale(var(--sights-scale));
   transform-origin: 0 0; pointer-events: auto; will-change: transform;
 }
 .cinema-page .sights-track {
@@ -204,6 +210,8 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
 }
 .cinema-page .splitframe-img {
   left: 50%; bottom: -2vh; z-index: 6; width: min(118vw, 2240px); height: auto; pointer-events: none;
+  /* Not in the spec: the frames fade where they used to part. */
+  opacity: var(--split-opacity);
 }
 .cinema-page .splitframe-left {
   transform: translate3d(var(--split-left-x), var(--split-left-y), 0) scale(var(--split-left-scale));

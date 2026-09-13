@@ -31,6 +31,16 @@ import type { BlogCard } from '@/lib/blog';
  *   - The three card sets the spec builds by cloneNode are rendered directly —
  *     the same DOM, without mutating React's tree.
  *
+ * Three of the spec's movements are removed at the client's request, all of
+ * them sideways: the pointer parallax (layers drifting with the mouse), the
+ * two tower frames parting to reveal the river close-up, and the cards flying
+ * in from off-screen right. The frames keep only the lift-and-grow they share
+ * with the bridge — the parting's own lift and 1.74× scale went with it,
+ * because without the sideways motion they would fill the screen with stone —
+ * and fade out over the window the spec parted them in, since frames that
+ * stay put cover the panels and, at the end, the cards. The cards fade in
+ * where they sit. Everything vertical stays the spec's.
+ *
  * Everything the engine writes goes to `.cinema-page` (custom properties) and
  * `html.cinema-html` (the spec's html/body rules), and both are undone on
  * unmount, so nothing of this page survives navigating away from it.
@@ -105,10 +115,6 @@ export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; cou
     html.classList.add('cinema-html');
 
     // ── State ────────────────────────────────────────────────────────────────
-    let targetMouseX = 0;
-    let targetMouseY = 0;
-    let mouseX = 0;
-    let mouseY = 0;
     let targetScroll = 0;
     let smoothScroll = 0;
     let initialized = false;
@@ -136,9 +142,6 @@ export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; cou
       }
       if (Math.abs(smoothScroll - targetScroll) < 0.08) smoothScroll = targetScroll;
 
-      mouseX = lerp(mouseX, targetMouseX, 0.12);
-      mouseY = lerp(mouseY, targetMouseY, 0.12);
-
       const frame2 = segmentInOut(smoothScroll, 560, 900, 1300, 1620);
       const frame3 = segmentInOut(smoothScroll, 1760, 2140, 2540, 2700);
       const progress = clamp(smoothScroll / 2700);
@@ -148,7 +151,6 @@ export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; cou
       const sightsControlsEnter = smoothstep(3360, 3660, smoothScroll);
       const blurActive = clamp(frame2.active + frame3.active);
       const frame2Opacity = frame2.active * (1 - frame3.enter);
-      const splitDrift = Math.pow(frame2.enter, 1.5);
       const panel2Opacity = frame2.active * (1 - frame2.exit);
       const panel3Opacity = frame3.active * (1 - frame3.exit);
       const backScale = 0.76 + progress * 0.2 + frame2.enter * 0.18 + frame3.enter * 0.16;
@@ -166,12 +168,7 @@ export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; cou
       );
       const sightsParentTop = window.innerHeight - (window.innerHeight - sightsScreenTop) / backScale;
 
-      set('--mx', (reduceMotion.matches ? 0 : mouseX).toFixed(4));
-      set('--my', (reduceMotion.matches ? 0 : mouseY).toFixed(4));
-
       set('--back-opacity', 1 - frame2.active * 0.06);
-      set('--back-x', `${mouseX * -12}px`);
-      set('--back-y', `${mouseY * -4}px`);
       set('--back-scale', backScale);
       set('--four-y', `${10 + progress * 10}vh`);
       set('--four-scale', 0.78 + progress * 0.16);
@@ -191,22 +188,23 @@ export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; cou
       set('--title-scale', 1 - introExit * 0.08);
       set('--title-opacity', 1 - introExit);
 
-      set('--bridge-x', `calc(-50% + ${mouseX * 18}px)`);
-      set('--bridge-y', `${mouseY * 8 + sharedHeroY - frame2.exit * 760}px`);
+      set('--bridge-y', `${sharedHeroY - frame2.exit * 760}px`);
       set('--bridge-bottom', `${5 - frame2.enter * 13}vh`);
       set('--bridge-width', `${67.2 + frame2.enter * 37.8}vw`);
       set('--bridge-scale', 1.02 + sharedHeroScale + frame2.exit * 0.46);
 
-      set('--split-left-x', `calc(-50% + ${-splitDrift * 46}vw + ${mouseX * 22}px)`);
-      set('--split-left-y', `${mouseY * 10 + sharedHeroY - splitDrift * 180}px`);
-      set('--split-left-scale', 1 + sharedHeroScale + frame2.enter * 0.74);
-      set('--split-right-x', `calc(-50% + ${splitDrift * 46}vw + ${mouseX * 22}px)`);
-      set('--split-right-y', `${mouseY * 10 + sharedHeroY - splitDrift * 180}px`);
-      set('--split-right-scale', 1 + sharedHeroScale + frame2.enter * 0.74);
+      set('--split-left-y', `${sharedHeroY}px`);
+      set('--split-left-scale', 1 + sharedHeroScale);
+      set('--split-right-y', `${sharedHeroY}px`);
+      set('--split-right-scale', 1 + sharedHeroScale);
+      // The spec parted the frames ±46vw over frame2.enter and left them there
+      // for the rest of the page; sitting still, they would cover the river
+      // close-up, both panels' edges, and finally the cards. Same window, a
+      // fade instead of a slide.
+      set('--split-opacity', 1 - frame2.enter);
 
       set('--frame2-opacity', frame2Opacity);
-      set('--frame2-x', `calc(-50% + ${mouseX * 10}px)`);
-      set('--frame2-y', `calc(-50% + ${mouseY * 8 - frame2.exit * 150}px)`);
+      set('--frame2-y', `calc(-50% + ${-frame2.exit * 150}px)`);
       set('--frame2-scale', 1.06 + frame2.enter * 0.08 + frame2.exit * 0.08);
 
       set('--intro-copy-y', `${introExit * 90}px`);
@@ -221,18 +219,11 @@ export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; cou
       sightsControls?.classList.toggle('is-ready', sightsControlsEnter > 0.98);
       set('--sights-visibility', sightsEnter > 0.01 ? 'visible' : 'hidden');
       set('--sights-y', '0px');
-      set('--sights-enter-x', `${(1 - sightsEnter) * 420}vw`);
       set('--sights-scale', 1 / backScale);
       set('--sights-top', `${sightsParentTop}px`);
       set('--sights-screen-top', `${sightsScreenTop}px`);
 
-      if (
-        Math.abs(smoothScroll - targetScroll) > 0.08 ||
-        Math.abs(mouseX - targetMouseX) > 0.001 ||
-        Math.abs(mouseY - targetMouseY) > 0.001
-      ) {
-        requestTick();
-      }
+      if (Math.abs(smoothScroll - targetScroll) > 0.08) requestTick();
     }
 
     function requestTick() {
@@ -284,11 +275,6 @@ export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; cou
       updateSightSlider();
       requestTick();
     };
-    const onPointerMove = (event: PointerEvent) => {
-      targetMouseX = event.clientX / window.innerWidth - 0.5;
-      targetMouseY = event.clientY / window.innerHeight - 0.5;
-      requestTick();
-    };
     const onPrev = () => moveSightSlider(-1);
     const onNext = () => moveSightSlider(1);
     const prev = prevRef.current;
@@ -296,7 +282,6 @@ export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; cou
 
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onResize);
-    window.addEventListener('pointermove', onPointerMove, { passive: true });
     prev?.addEventListener('click', onPrev);
     next?.addEventListener('click', onNext);
     track.addEventListener('transitionend', normalizeSightSlider);
@@ -307,7 +292,6 @@ export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; cou
     return () => {
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onResize);
-      window.removeEventListener('pointermove', onPointerMove);
       prev?.removeEventListener('click', onPrev);
       next?.removeEventListener('click', onNext);
       track.removeEventListener('transitionend', normalizeSightSlider);

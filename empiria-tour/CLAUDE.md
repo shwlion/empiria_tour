@@ -96,7 +96,13 @@ smallest one that works:
   100%; the bridge is 105vw, the splitframes 118vw and frame-two 122vw.
 The engine writes its custom properties to `.cinema-page`, not `:root`. A
 card click **navigates** to `/blog/[slug]` (the spec's click-to-centre is
-replaced by that); the ← → buttons keep the sliding. The scene layers are raw
+replaced by that); the ← → buttons keep the sliding. **Removed from the spec
+at the client's request:** the hero title, and every sideways movement — the
+pointer parallax, the tower frames parting (with the lift and 1.74× scale
+that only made sense alongside it — they fade out over the same window
+instead, or they would cover the panels and the cards), and the cards flying
+in from 420vw; the row fades in place. Everything vertical is still the
+spec's. The scene layers are raw
 `<img>` with a file-level `no-img-element` disable and a stated reason. The
 display face is served by `app/api/fonts/ogg/route.ts`: the spec's font host
 sends no `Access-Control-Allow-Origin`, so a browser refuses it cross-origin
