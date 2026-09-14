@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { absoluteUrl } from '@/lib/seo';
 import { getStaticPage } from '@/lib/catalogue';
+import { renderBlogMarkdown } from '@/lib/blogMarkdown';
 
 /**
  * Shared renderer for the seven static pages Exhibit A B6 names: terms,
@@ -11,20 +12,25 @@ import { getStaticPage } from '@/lib/catalogue';
  *
  * The body lives in `static_pages` and is edited in Admin (B6), so these routes
  * are seven thin files pointing at one component rather than seven copies of
- * the same layout. Content is plain text today; when the Admin editor lands it
- * will emit sanitised HTML and this is the single place that changes.
+ * the same layout. The body goes through the journal's Markdown subset
+ * (`##` headings, lists, bold, links) — the same renderer the FAQ's answers
+ * use, which never turns the author's text into markup — so a page can have
+ * sections without anyone writing HTML. Plain text still renders as
+ * paragraphs, one per blank line.
  *
  * `eyebrow` exists because four of the seven are policies and three are not.
  * Labelling the About page "Policy" would be a small lie told on every visit.
  */
 export async function policyMetadata(slug: string, fallbackTitle: string): Promise<Metadata> {
     const page = await getStaticPage(slug);
-    const title = `${page?.meta_title ?? page?.title ?? fallbackTitle} — Empiria Tours`;
+    // The root layout's template appends "· Empiria Tours"; appending it here
+    // too printed the name twice in every tab title.
+    const title = page?.meta_title ?? page?.title ?? fallbackTitle;
     return {
         title,
         description: page?.meta_description ?? undefined,
         alternates: { canonical: `/${slug}` },
-        openGraph: { title, url: absoluteUrl(`/${slug}`), type: 'article' },
+        openGraph: { title: `${title} · Empiria Tours`, url: absoluteUrl(`/${slug}`), type: 'article' },
     };
 }
 
@@ -41,9 +47,7 @@ export default async function PolicyPage({ slug, eyebrow = 'Policy' }: { slug: s
                     {page.title}
                 </h1>
                 <div className="mt-8 h-px w-full bg-sand" aria-hidden="true" />
-                <div className="mt-8 whitespace-pre-line text-[16px] leading-relaxed text-stone">
-                    {page.body}
-                </div>
+                <div className="blog-body policy-body mt-8">{renderBlogMarkdown(page.body)}</div>
             </article>
             <Footer />
         </div>
