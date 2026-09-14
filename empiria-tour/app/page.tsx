@@ -371,8 +371,19 @@ export default async function TourHome({
                     <div>
                         <h3 className="font-display text-[18px] font-bold tracking-tight text-ink">Talk to a person</h3>
                         <p className="mt-1.5 text-[14px] leading-relaxed text-stone">
-                            {settings?.contact_email ?? 'Contact details to follow.'}
-                            {settings?.contact_phone ? ` · ${settings.contact_phone}` : ''}
+                            {settings?.contact_email || settings?.contact_phone ? (
+                                <>
+                                    {settings.contact_email ?? ''}
+                                    {settings.contact_email && settings.contact_phone ? ' · ' : ''}
+                                    {settings.contact_phone ?? ''}
+                                </>
+                            ) : (
+                                <>
+                                    Write to us through the{' '}
+                                    <Link href="/contact" className="ul text-ink">contact page</Link> — somebody
+                                    who runs the trips will reply.
+                                </>
+                            )}
                         </p>
                     </div>
                 </div>

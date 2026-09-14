@@ -66,7 +66,9 @@ export default async function ContactPage() {
                   )}
                 </dl>
               ) : (
-                <p className="mt-3 text-[14px] leading-relaxed text-stone">Contact details to follow.</p>
+                <p className="mt-3 text-[14px] leading-relaxed text-stone">
+                  The form is the quickest way to reach us.
+                </p>
               )}
               <p className="mt-5 text-[13px] leading-relaxed text-stone">
                 Booking questions go faster with the booking reference to hand. For anything urgent

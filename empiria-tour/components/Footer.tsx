@@ -138,9 +138,6 @@ export default async function Footer() {
                   {SOCIAL_LABELS[key] ?? key}
                 </a>
               ))}
-              {!settings?.contact_email && !settings?.contact_phone && social.length === 0 && (
-                <span className="text-[14px] text-stone/70">Contact details to follow.</span>
-              )}
             </div>
           </div>
         </div>
