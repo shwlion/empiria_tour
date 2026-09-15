@@ -71,7 +71,17 @@ threads it into its menus. The footer is white sitewide.
   (a FLIP on a fixed `.zoom-layer`), the section becomes `position: fixed`
   (`html.takeover`), scroll is locked, everything outside is `inert`, the
   left column shows that postcard's words and one "Browse all tours" link; ✕
-  or Escape flies it back and returns focus. `components/home/takeover.ts`
+  or Escape flies it back and returns focus. **The fly-back (14 Sep, client's request):** its own curve,
+  `COLLAPSE_EASE` over 950ms — the expand's eager ease-out put 55% of the
+  collapse in its first 83ms and read as a drop. The layer flies to the card's
+  *unskewed* box and leans `skewY(0→4deg)` on the way (`frameOf`,
+  `unskewedRect`), so it lands as the card's exact shape instead of a flat
+  rectangle a skew taller; the expand lifts off the same way. The deck's swap
+  clock is paused while the takeover is up and resumed once the photo has
+  landed, so the first 500px drop comes a full interval later. And a finished
+  animation is now pruned from the engine's `live` list — left there, `swap()`
+  believed a move was still in flight and the deck never cycled again after
+  any takeover. `components/home/takeover.ts`
   holds the DOM chores. Reduced motion switches states instantly.
 - **`EventsSpotlight`** — "Looking for something different?" — is Exhibit A
   A2's promotional placement for Empiria live events, in live form: six

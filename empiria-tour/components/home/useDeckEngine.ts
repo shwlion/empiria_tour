@@ -74,6 +74,10 @@ export function createDeckEngine(cards: HTMLElement[], base: DeckConfig, reduce:
       .then(() => {
         try { a.commitStyles(); a.cancel(); } catch { /* not rendered: place() below is enough */ }
         place(el, s);
+        // Out of `live` once it has landed. A finished animation left in the
+        // list kept `swap()` believing a move was still in flight, so after
+        // any remove()/restore() the deck never swapped again.
+        live = live.filter((x) => x !== a);
       })
       .catch(() => { /* cancelled by a re-layout — it has already been placed */ });
   };

@@ -7,6 +7,7 @@ import { isOptimisableImage } from '@/lib/images';
 import { useReducedMotion } from '@/lib/motion';
 import type { ShowcaseCard } from '@/lib/catalogue';
 import { createDeckEngine, type DeckHandle } from './useDeckEngine';
+import { rectOf, unskewedRect, type Frame } from './takeover';
 
 /**
  * The postcard deck — four illustrative cards in a leaning 3D stack that swaps
@@ -21,8 +22,13 @@ import { createDeckEngine, type DeckHandle } from './useDeckEngine';
 export type DeckApi = {
   remove(id: string): void;
   restore(id: string): void;
-  rectOf(id: string): DOMRect | null;
+  /** The card's unskewed box and the lean it is drawn with — see takeover.ts. */
+  frameOf(id: string): Frame | null;
   focus(id: string): void;
+  /** Stop the swap clock (and freeze anything mid-move) while the takeover is up. */
+  pause(): void;
+  /** Start it again — unless the pointer is resting on the deck, which pauses it too. */
+  resume(): void;
 };
 
 export default function PostcardDeck({
@@ -35,7 +41,7 @@ export default function PostcardDeck({
   cards: ShowcaseCard[];
   /** The card currently out of the deck, if any — it stays in the DOM, hidden by CSS. */
   expandedId: string | null;
-  onSelect: (card: ShowcaseCard, el: HTMLElement) => void;
+  onSelect: (card: ShowcaseCard) => void;
   ref?: Ref<DeckApi>;
   config?: Partial<DeckConfig>;
 }) {
@@ -43,6 +49,9 @@ export default function PostcardDeck({
   const cfg = useMemo<DeckConfig>(() => ({ ...DECK_DEFAULTS, ...config }), [config]);
   const nodes = useRef(new Map<string, HTMLButtonElement>());
   const engine = useRef<DeckHandle | null>(null);
+  // Hover pauses the deck; so does the takeover. Whichever ends second must
+  // not restart the clock while the other still holds it.
+  const hovering = useRef(false);
   const expandedRef = useRef<string | null>(expandedId);
   useEffect(() => {
     expandedRef.current = expandedId;
@@ -72,8 +81,14 @@ export default function PostcardDeck({
     () => ({
       remove: (id) => engine.current?.remove(indexOf(id)),
       restore: (id) => engine.current?.restore(indexOf(id)),
-      rectOf: (id) => nodes.current.get(id)?.getBoundingClientRect() ?? null,
+      frameOf: (id) => {
+        const el = nodes.current.get(id);
+        if (!el) return null;
+        return { rect: unskewedRect(rectOf(el), cfg.skew), skew: cfg.skew };
+      },
       focus: (id) => nodes.current.get(id)?.focus({ preventScroll: true }),
+      pause: () => engine.current?.pause(),
+      resume: () => { if (!hovering.current) engine.current?.resume(); },
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [ids]
@@ -84,8 +99,8 @@ export default function PostcardDeck({
       className="deck relative mx-auto h-[240px] w-full max-w-[340px] sm:h-[300px] sm:max-w-[420px] lg:h-[330px] lg:max-w-[460px]"
       role="region"
       aria-label="Postcards — what a trip could be"
-      onMouseEnter={() => engine.current?.pause()}
-      onMouseLeave={() => engine.current?.resume()}
+      onMouseEnter={() => { hovering.current = true; engine.current?.pause(); }}
+      onMouseLeave={() => { hovering.current = false; engine.current?.resume(); }}
     >
       <div className="deck-stage">
         {cards.map((card, i) => {
@@ -104,7 +119,7 @@ export default function PostcardDeck({
               aria-haspopup="dialog"
               aria-expanded={expandedId === card.id}
               aria-label={card.title}
-              onClick={(e) => onSelect(card, e.currentTarget)}
+              onClick={() => onSelect(card)}
             >
               <Image
                 src={card.imageUrl}

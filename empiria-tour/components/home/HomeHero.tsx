@@ -10,17 +10,17 @@ import { useReducedMotion } from '@/lib/motion';
 import PostcardDeck, { type DeckApi } from './PostcardDeck';
 import {
   CARD_RADIUS,
+  COLLAPSE_EASE,
   COLLAPSE_MS,
   EXPAND_MS,
   TAKEOVER_EASE,
   applyRect,
   keyframesFor,
   lockScroll,
-  rectOf,
   setInertOutside,
   unlockScroll,
   viewportRect,
-  type Rect,
+  type Frame,
 } from './takeover';
 
 /**
@@ -50,8 +50,8 @@ import {
 /** The load choreography's delay, as the custom property the CSS reads. */
 const delay = (ms: number) => ({ '--d': `${ms}ms` }) as CSSProperties;
 
-type Incoming = { card: ShowcaseCard; from: Rect };
-type Closing = { card: ShowcaseCard; to: Rect };
+type Incoming = { card: ShowcaseCard; from: Frame };
+type Closing = { card: ShowcaseCard; to: Frame };
 
 export default function HomeHero({ cards, intro }: { cards: ShowcaseCard[]; intro: ReactNode }) {
   const reduce = useReducedMotion();
@@ -82,17 +82,21 @@ export default function HomeHero({ cards, intro }: { cards: ShowcaseCard[]; intr
 
   // ── opening ──────────────────────────────────────────────────────────────
   const select = useCallback(
-    (card: ShowcaseCard, el: HTMLElement) => {
+    (card: ShowcaseCard) => {
       if (current?.id === card.id || closing) return;
-      const from = rectOf(el);
+      const from = deckRef.current?.frameOf(card.id) ?? null;
       const section = sectionRef.current;
       if (!open && section) {
         scrollYRef.current = lockScroll();
         setInertOutside(section, true);
+        // The swap clock stops while the takeover is up. Otherwise its phase
+        // is wherever it happened to be when ✕ is pressed, and the front card
+        // — the one that just landed — can drop 500px moments later.
+        deckRef.current?.pause();
       }
       if (current) deckRef.current?.restore(current.id);
       deckRef.current?.remove(card.id);
-      if (reduce) {
+      if (reduce || !from) {
         setIncoming(null);
         setBackground(card);
       } else {
@@ -109,8 +113,8 @@ export default function HomeHero({ cards, intro }: { cards: ShowcaseCard[]; intr
     if (!incoming || !el) return;
     const { card, from } = incoming;
     const to = viewportRect();
-    applyRect(el, from, CARD_RADIUS);
-    const a = el.animate(keyframesFor(from, to, CARD_RADIUS, '0px'), {
+    applyRect(el, from.rect, CARD_RADIUS, from.skew);
+    const a = el.animate(keyframesFor(from.rect, to, CARD_RADIUS, '0px', from.skew, 0), {
       duration: EXPAND_MS,
       easing: TAKEOVER_EASE,
       fill: 'forwards',
@@ -121,7 +125,7 @@ export default function HomeHero({ cards, intro }: { cards: ShowcaseCard[]; intr
         if (stale) return;
         // Hold the end state in the inline style, then let React swap the
         // layers in one commit — no frame where the photo is neither.
-        applyRect(el, to, '0px');
+        applyRect(el, to, '0px', 0);
         try { a.cancel(); } catch { /* already gone */ }
         setBackground(card);
         setIncoming(null);
@@ -143,12 +147,12 @@ export default function HomeHero({ cards, intro }: { cards: ShowcaseCard[]; intr
     unlockScroll(scrollYRef.current);
     setInertOutside(section, false);
     deckRef.current?.restore(card.id);
-    const to = deckRef.current?.rectOf(card.id) ?? null;
+    const to = deckRef.current?.frameOf(card.id) ?? null;
     setIncoming(null);
     setBackground(null);
     focusAfterRef.current = card.id;
     if (reduce || !to) return;
-    setClosing({ card, to: { top: to.top, left: to.left, width: to.width, height: to.height } });
+    setClosing({ card, to });
   }, [current, closing, reduce]);
 
   useLayoutEffect(() => {
@@ -156,10 +160,10 @@ export default function HomeHero({ cards, intro }: { cards: ShowcaseCard[]; intr
     if (!closing || !el) return;
     const { to } = closing;
     const from = viewportRect();
-    applyRect(el, from, '0px');
-    const a = el.animate(keyframesFor(from, to, '0px', CARD_RADIUS), {
+    applyRect(el, from, '0px', 0);
+    const a = el.animate(keyframesFor(from, to.rect, '0px', CARD_RADIUS, 0, to.skew), {
       duration: COLLAPSE_MS,
-      easing: TAKEOVER_EASE,
+      easing: COLLAPSE_EASE,
       fill: 'forwards',
     });
     let stale = false;
@@ -180,6 +184,9 @@ export default function HomeHero({ cards, intro }: { cards: ShowcaseCard[]; intr
     if (expandedId !== null || !focusAfterRef.current) return;
     deckRef.current?.focus(focusAfterRef.current);
     focusAfterRef.current = null;
+    // The clock starts again only now the photo has landed, so the first
+    // swap comes a full interval later rather than the instant it sits down.
+    deckRef.current?.resume();
   }, [expandedId]);
 
   // Focus goes to ✕ when the takeover opens; Escape closes it.
