@@ -157,6 +157,11 @@ export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; cou
       targetScroll = getScrollDistance();
       const navBottomRaw = nav ? nav.getBoundingClientRect().bottom : null;
       const cardWidth = sightCards.length > 0 ? sightCards[0].offsetWidth : 0;
+      // The row's block, for centring it: the card as laid out (the lift is a
+      // transform and does not count), the 24px the CSS leaves under it, and
+      // the buttons. Measured here, in the read phase, with everything else.
+      const cardHeight = sightCards.length > 0 ? sightCards[0].offsetHeight : 0;
+      const controlsHeight = sightsControls ? sightsControls.offsetHeight : 0;
       const sliderLeftRaw = sightCards.length > 0 ? slider!.getBoundingClientRect().left : 0;
       if (!initialized || reduceMotion.matches) {
         smoothScroll = targetScroll;
@@ -182,20 +187,23 @@ export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; cou
       const backScale = 0.76 + progress * 0.2 + frame2.enter * 0.18 + frame3.enter * 0.16;
       const sharedHeroY = progress * -74;
       const sharedHeroScale = progress * 0.23;
-      // The spec's row height, then no higher than the site navbar allows. The
-      // spec's own header was shorter and static; ours is a fixed plate whose
+      // The row is centred in the viewport (client's request, 14 Sep): the
+      // spec pinned it a fixed distance under its header, which on a 1440px-
+      // tall monitor left the cards hugging the navbar with 800px of empty
+      // scene beneath them. The block being centred is the card, the gap and
+      // the buttons — measured, so a card that changes height moves the row
+      // with it.
+      //
+      // Then no higher than the navbar allows. Ours is a fixed plate whose
       // bottom edge is measured rather than assumed, so a change to the navbar
-      // never puts a card under it. On a 700px-tall laptop the spec's formula
-      // alone would.
-      // Room under the navbar: the ~14px the active card rises by when it is
-      // lifted and scaled (measured on the row, not the lifted card), and then
+      // never puts a card under it. Room under it: the ~14px the active card
+      // rises by when lifted (measured on the row, not the lifted card), then
       // clear air — 90px in all, at the client's request; 30 was too tight to
-      // the plate.
+      // the plate. On a 700px-tall laptop this floor is what decides, exactly
+      // as it did before centring.
       const navBottom = navBottomRaw != null ? navBottomRaw + 90 : 0;
-      const sightsScreenTop = Math.max(
-        Math.min(220, Math.max(112, window.innerHeight * 0.19)) - 50,
-        navBottom
-      );
+      const blockHeight = cardHeight + 24 + controlsHeight;
+      const sightsScreenTop = Math.max((window.innerHeight - blockHeight) / 2, navBottom);
       const sightsParentTop = window.innerHeight - (window.innerHeight - sightsScreenTop) / backScale;
 
       set('--back-opacity', 1 - frame2.active * 0.06);
