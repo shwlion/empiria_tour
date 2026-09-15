@@ -161,7 +161,10 @@ headline's top overlapped the navbar by 5px. **The row is centred vertically (14
 distance under its header, which on a 1440px-tall monitor left the cards
 hugging the navbar with ~800px of empty scene below. The engine now centres
 the measured block — card, 24px, buttons — in the viewport, still floored by
-the navbar plus the client's 90px, so a 700px laptop is exactly as before. The copy is hard-coded in the
+the navbar plus the client's 90px, so a 700px laptop is exactly as before. **The intro block is `visibility: hidden` once faded (14 Sep):** at opacity 0
+it still took every click aimed under it — which, once it held a headline and
+the row was centred, was the whole middle card. `--intro-copy-visibility`,
+the same cure the slider has always used. The copy is hard-coded in the
 component; making it editable from the console is a follow-up.
 
 ### The contact page

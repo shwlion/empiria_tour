@@ -247,6 +247,10 @@ export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; cou
 
       set('--intro-copy-y', `${introExit * 90}px`);
       set('--intro-copy-opacity', 1 - introExit);
+      // Faded out is not gone: at opacity 0 the block still took every click
+      // aimed at whatever lay under it — which, once it held a headline and
+      // the row was centred, was the middle card. Same cure the slider uses.
+      set('--intro-copy-visibility', introExit < 0.99 ? 'visible' : 'hidden');
       set('--panel2-opacity', panel2Opacity);
       set('--panel2-y', `calc(-50% + ${-frame2.exit * 86 + (1 - frame2.enter) * 58}px)`);
       set('--panel3-opacity', panel3Opacity);

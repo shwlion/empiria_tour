@@ -62,7 +62,7 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
   --split-right-x: -50%; --split-right-y: 0px; --split-right-scale: 1;
   --split-opacity: 1;
   --frame2-opacity: 0; --frame2-x: -50%; --frame2-y: -50%; --frame2-scale: 1.06;
-  --intro-copy-y: 0px; --intro-copy-opacity: 1;
+  --intro-copy-y: 0px; --intro-copy-opacity: 1; --intro-copy-visibility: visible;
   --panel2-opacity: 0; --panel2-y: calc(-50% + 58px);
   --panel3-opacity: 0; --panel3-y: calc(-50% + 58px);
   --sights-opacity: 0; --sights-controls-opacity: 0; --sights-y: 0px;
@@ -326,6 +326,9 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
   width: min(680px, calc(100vw - 40px)); text-align: center;
   transform: translate3d(-50%, var(--intro-copy-y), 0);
   opacity: var(--intro-copy-opacity); will-change: transform, opacity;
+  /* Hidden once faded, or the invisible block keeps taking the clicks meant
+     for the card beneath it — and its button stays in the tab order. */
+  visibility: var(--intro-copy-visibility);
 }
 /* The headline (14 Sep, client's request): four words in the display face the
    story panels already use, sized to catch the eye from across the room —
