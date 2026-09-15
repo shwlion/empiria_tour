@@ -180,16 +180,18 @@ component; making it editable from the console is a follow-up.
 ### The contact page
 `/contact` is B6's contact page with a form: name (optional), email, message.
 It **stores nothing** — by the client's decision — and sends straight to the
-contact address in Platform settings through **Amazon SES**, with the
-sender's address as Reply-To. `lib/email/ses.ts` is one signed POST over
-`fetch` (no SDK, like the Resend mailer); the signature is
-`lib/email/sigv4.ts`, proved against AWS's published get-vanilla test vector
-in `lib/email/sigv4.test.ts`. Four server-only env vars (`AWS_SES_REGION`,
-`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `SES_FROM_EMAIL`); absent, the
-form renders with Send disabled and says why. Bot protection is the partner
-form's honeypot; Part F's real challenge is still unbuilt for all three
-public forms. Two SES facts that read as bugs: a sandbox account may only send
-*to* verified addresses, and the From must be a verified identity.
+contact address in Platform settings through **Resend**, the same mailer the
+outbox drains through (`lib/email/mailer.ts:sendEmail`), called directly so no
+`email_messages` row is written, with the sender's address as Reply-To. It
+went through Amazon SES until 15 Sep 2026 — its own signed `fetch` and a
+SigV4 implementation proved against AWS's test vector — until the client
+chose one provider; those files are gone, and with them the four `AWS_*` env
+vars. The form now needs only what the outbox needs, `RESEND_API_KEY` and
+`EMAIL_FROM`; absent, it renders with Send disabled and says why. Bot
+protection is the partner form's honeypot; Part F's real challenge is still
+unbuilt for all three public forms. One Resend fact that reads as a bug: until
+the sending domain is verified, a message can only be delivered to the Resend
+account's own address.
 
 ### The FAQ page
 `/faq` renders the `faq` static page as dropdowns. The questions live in the

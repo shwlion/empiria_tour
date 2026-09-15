@@ -2,20 +2,22 @@
 
 import { headers } from 'next/headers';
 import { getPlatformSettings } from '@/lib/catalogue';
-import { isSesConfigured, sendViaSes } from '@/lib/email/ses';
+import { isMailConfigured, sendEmail } from '@/lib/email/mailer';
 import { BOT_CHECK_FIELD, BOT_CHECK_MESSAGE, verifyBotCheck } from '@/lib/botcheck';
 
 /**
  * The contact form.
  *
  * Nothing is stored. A message goes to the contact address in Platform
- * settings through Amazon SES, with the sender's address as Reply-To so
- * Empiria answers from their own inbox — that is the whole design, by the
- * client's decision, and it is why this file has no Supabase import.
+ * settings through Resend — the same mailer the outbox drains through, called
+ * directly so no row is written — with the sender's address as Reply-To so
+ * Empiria answers from their own inbox. That is the whole design, by the
+ * client's decision, and it is why this file has no Supabase import. (It went
+ * through Amazon SES until 15 Sep 2026; the client chose one provider.)
  *
  * Two consequences of storing nothing, both accepted:
- *   - If SES refuses, the person is told and asked to email directly. There
- *     is no queue to fall back to.
+ *   - If Resend refuses, the person is told and asked to email directly.
+ *     There is no queue to fall back to.
  *   - Abuse is limited to a honeypot and a length cap, as on the partner
  *     application. Part F's real challenge (Turnstile) is still unbuilt and
  *     this form needs it the same as the other two.
@@ -62,7 +64,7 @@ export async function contactAction(_prev: ContactResult | null, form: FormData)
   const to = settings?.contact_email?.trim();
   const fallback = to ? ` You can also write to ${to} directly.` : '';
 
-  if (!to || !isSesConfigured()) {
+  if (!to || !isMailConfigured()) {
     // Configuration, not a fault the person can fix. Say so plainly.
     return {
       ok: false,
@@ -80,7 +82,7 @@ export async function contactAction(_prev: ContactResult | null, form: FormData)
   }
 
   const who = name ? `${name} <${email}>` : email;
-  const sent = await sendViaSes({
+  const sent = await sendEmail({
     to,
     replyTo: email,
     subject: `Website inquiry from ${name || email}`,

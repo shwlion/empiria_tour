@@ -3,7 +3,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { policyMetadata } from '@/components/PolicyPage';
 import { getPlatformSettings, getStaticPage } from '@/lib/catalogue';
-import { isSesConfigured } from '@/lib/email/ses';
+import { isMailConfigured } from '@/lib/email/mailer';
 import ContactForm from './ContactForm';
 
 /**
@@ -12,7 +12,7 @@ import ContactForm from './ContactForm';
  * The page's own wording (`static_pages.contact`, edited in the console) sits
  * above the form as the introduction, when Empiria has written it. The
  * address and phone come from Platform settings, as in the footer. The form
- * sends through Amazon SES to that same address and stores nothing.
+ * sends through Resend to that same address and stores nothing.
  *
  * Not frozen at build time, for the same reason as the other six: the wording
  * and the contact details are Empiria's to change without a redeploy.
@@ -28,7 +28,7 @@ export default async function ContactPage() {
   const [page, settings] = await Promise.all([getStaticPage('contact'), getPlatformSettings()]);
   const email = settings?.contact_email?.trim() || null;
   const phone = settings?.contact_phone?.trim() || null;
-  const available = Boolean(email) && isSesConfigured();
+  const available = Boolean(email) && isMailConfigured();
 
   return (
     <div className="min-h-screen bg-paper font-sans text-ink">
