@@ -106,19 +106,22 @@ export async function applyAction(_prev: ApplyResult | null, form: FormData): Pr
     toEmail: email,
     toName: contactName,
     dedupeKey: applicationId ? `partner_application_received:${applicationId}` : null,
-    mergeData: { 'traveller.name': contactName, 'company.name': companyName },
+    mergeData: { 'applicant.name': contactName, 'applicant.company': companyName },
   });
 
   const staff = process.env.ADMIN_ALERT_EMAIL;
   if (staff && applicationId) {
     await enqueue({
-      templateKey: 'admin_alert',
+      // Its own template: admin_alert is about a booking and needs a reference,
+      // a total and a date, none of which an application has — with those in
+      // its body, every one of these would have failed to render.
+      templateKey: 'partner_application_alert',
       toEmail: staff,
       dedupeKey: `partner_application:${applicationId}`,
       mergeData: {
-        'traveller.name': contactName,
-        'package.title': companyName,
-        'booking.admin_link': `${process.env.ADMIN_URL ?? ''}/dashboard/partners/${applicationId}`,
+        'applicant.name': contactName,
+        'applicant.company': companyName,
+        'application.admin_link': `${process.env.ADMIN_URL ?? ''}/dashboard/partners/${applicationId}`,
       },
     });
   }

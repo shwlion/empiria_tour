@@ -55,6 +55,48 @@ node --experimental-strip-types lib/email/render.test.ts
 `lib/admin/content.ts`. **The two must agree**: a chip offering a field the
 renderer does not know is a template that cannot render.
 
+## The frame — `lib/email/layout.ts`
+
+A template is the *message*; the frame is everything around it. `wrapEmail`
+puts the rendered body in a white card under the wordmark (`${TOUR_URL}/logo.png`
+— absolute, because email clients resolve nothing relative), one hairline of
+the brand orange, and a footer naming the seller: company name, TICO
+registration number and contact address, read from Platform settings **at
+send time** rather than frozen in at enqueue, so a number entered next month
+appears on every send after. The card is a 100%-wide table capped at 600px —
+not a 600px table allowed to shrink, which on a phone stretched the viewport
+instead — with an Outlook conditional holding 600 where `max-width` is
+ignored. Pure, 24 assertions:
+
+```bash
+node --experimental-strip-types lib/email/layout.test.ts
+```
+
+The drain also supplies `company.*` to every message from the same settings,
+over whatever the enqueuer stored: `COMMON_FIELDS` promises them to every
+template, and until now only the booking enqueuers delivered.
+
+## The wording — drafts, and where they came from
+
+Migration **0020** seeded a first draft of fifteen templates (everything but
+the installment pair, which waits for its schedule table), **only where the
+body was still empty** — it can never overwrite what Empiria writes in the
+console. They are Elevsoft's drafts of transactional wording: every number is
+a merge field, nothing states a term or a policy, and §2.3 still puts the
+final words on Empiria's desk. The source is `scripts/email-templates/
+drafts.ts`, and `scripts/email-templates/preview.ts` renders each one through
+the real renderer and frame to `/tmp/empiria-email/` — which is also the
+check, since the renderer throws on an undeclared field. The console has no
+preview of its own yet.
+
+`partner_application_alert` arrived with them: the partner form had reused
+`admin_alert` for its staff alert while supplying three of its six fields, so
+the moment `admin_alert` mentioned the booking reference every application
+alert would have failed to render. The three partner emails also got fields of
+their own (`applicant.name`, `applicant.company`, `application.note`,
+`partner.console_link`) in place of borrowing `traveller.name` and
+`company.name` — the latter being the seller's, and in every footer.
+
 ## Sending — `lib/email/mailer.ts`
 
 Resend over `fetch`, **not the SDK**. One POST with a bearer token; an SDK buys

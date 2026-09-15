@@ -55,6 +55,15 @@ export const FIELD_KINDS: Record<string, FieldKind> = {
   'installment.amount': 'money',
   'installment.due_on': 'date',
   'installment.remaining': 'money',
+  // The partner-application emails. Their own names, so a template author is
+  // never asked to read "the applicant" into `traveller.name`, and the
+  // applicant's business never collides with `company.name`, which is the
+  // seller's and appears in every footer.
+  'applicant.name': 'text',
+  'applicant.company': 'text',
+  'application.note': 'text',
+  'partner.console_link': 'url',
+  'application.admin_link': 'url',
 };
 
 /** Available in every template — the seller has to identify itself (Part D). */
@@ -66,7 +75,8 @@ export const COMMON_FIELDS = [
 
 /**
  * The thirteen triggers of Part C as revised, and what each may reference.
- * `installment_due` and `installment_paid` are new in Revision 1.
+ * `installment_due` and `installment_paid` are new in Revision 1; the three
+ * partner-application emails are the partner surface's, outside Exhibit A.
  */
 export const TEMPLATE_FIELDS: Record<string, string[]> = {
   account_created: ['traveller.name', 'account.email', 'account.confirm_link'],
@@ -82,6 +92,13 @@ export const TEMPLATE_FIELDS: Record<string, string[]> = {
   departure_change: ['booking.reference', 'traveller.name', 'package.title', 'departure.old_date', 'departure.date', 'departure.reason'],
   pre_departure: ['booking.reference', 'traveller.name', 'package.title', 'departure.date', 'departure.meeting_point', 'departure.start_time', 'package.what_to_bring'],
   admin_alert: ['booking.reference', 'booking.total', 'traveller.name', 'package.title', 'departure.date', 'booking.admin_link'],
+  partner_application_received: ['applicant.name', 'applicant.company'],
+  partner_application_approved: ['applicant.name', 'applicant.company', 'partner.console_link'],
+  partner_application_declined: ['applicant.name', 'applicant.company', 'application.note'],
+  // To Empiria, not the applicant. Its own template rather than admin_alert,
+  // whose body is about a booking and needs a reference, a total and a date
+  // an application does not have.
+  partner_application_alert: ['applicant.name', 'applicant.company', 'application.admin_link'],
 };
 
 export const TEMPLATE_KEYS = Object.keys(TEMPLATE_FIELDS);

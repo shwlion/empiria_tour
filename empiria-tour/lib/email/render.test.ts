@@ -144,7 +144,20 @@ ok('date does not shift', formatValue('2027-01-01', 'date', 'CAD', 'en-CA') === 
   formatValue('2027-01-01', 'date', 'CAD', 'en-CA'));
 
 // ── the contract itself ────────────────────────────────────────────────────
-ok('thirteen templates, as Revision 1 requires', TEMPLATE_KEYS.length === 13, String(TEMPLATE_KEYS.length));
+const PART_C = [
+  'account_created', 'booking_confirmed', 'deposit_taken', 'balance_due', 'balance_paid',
+  'installment_due', 'installment_paid', 'booking_amended', 'booking_cancelled',
+  'refund_issued', 'departure_change', 'pre_departure', 'admin_alert',
+];
+const PARTNER = [
+  'partner_application_received', 'partner_application_approved',
+  'partner_application_declined', 'partner_application_alert',
+];
+ok('the thirteen of Revision 1 are all present', PART_C.every((k) => TEMPLATE_KEYS.includes(k)),
+  PART_C.filter((k) => !TEMPLATE_KEYS.includes(k)).join(', '));
+ok('the four partner-surface emails are present (outside Exhibit A)', PARTNER.every((k) => TEMPLATE_KEYS.includes(k)),
+  PARTNER.filter((k) => !TEMPLATE_KEYS.includes(k)).join(', '));
+ok('and nothing else', TEMPLATE_KEYS.length === PART_C.length + PARTNER.length, String(TEMPLATE_KEYS.length));
 ok('installment templates present',
   TEMPLATE_KEYS.includes('installment_due') && TEMPLATE_KEYS.includes('installment_paid'));
 

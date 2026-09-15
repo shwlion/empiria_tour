@@ -3,6 +3,8 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 import { renderEmail, TemplateError, type MergeData } from './render';
 import { CURRENCY_KEY, LOCALE_KEY } from './fields';
 import { isMailConfigured, sendEmail } from './mailer';
+import { wrapEmail, type Brand } from './layout';
+import { TOUR_URL } from '@/lib/urls';
 
 /**
  * The outbox, from the application's side.
@@ -146,6 +148,23 @@ async function companyFields(): Promise<MergeData> {
     'company.name': data?.company_name ?? '',
     'company.registration_number': data?.registration_number ?? '',
     'company.contact_email': data?.contact_email ?? '',
+  };
+}
+
+/**
+ * What the frame prints around every message: the seller, read now rather
+ * than at enqueue, so the footer says what Settings says today. The logo is
+ * the storefront's own file at an absolute address — email clients resolve
+ * nothing relative.
+ */
+async function loadBrand(): Promise<Brand> {
+  const c = await companyFields();
+  return {
+    companyName: String(c['company.name'] ?? ''),
+    registrationNumber: String(c['company.registration_number'] ?? ''),
+    contactEmail: String(c['company.contact_email'] ?? ''),
+    logoUrl: `${TOUR_URL}/logo.png`,
+    siteUrl: TOUR_URL,
   };
 }
 
@@ -306,6 +325,8 @@ export async function drainOutbox(limit = 20): Promise<DrainReport> {
     .select('key, subject, body_html, body_text, is_active')
     .in('key', keys);
   const byKey = new Map((templates ?? []).map((t) => [t.key, t]));
+  // Once per tick, not per message: the seller does not change mid-drain.
+  const brand = await loadBrand();
 
   for (const row of rows) {
     const template = byKey.get(row.template_key);
@@ -319,11 +340,22 @@ export async function drainOutbox(limit = 20): Promise<DrainReport> {
       continue;
     }
 
+    // The seller's fields are promised to every template (COMMON_FIELDS) and
+    // supplied here, from Settings as they stand now, over whatever the
+    // enqueuer froze in: the seller's identity is the sender's, not a fact of
+    // the booking. Without this a partner email using {{company.contact_email}}
+    // would fail — only the booking enqueuers ever added them.
+    const data: MergeData = {
+      ...row.merge_data,
+      'company.name': brand.companyName,
+      'company.registration_number': brand.registrationNumber,
+      'company.contact_email': brand.contactEmail,
+    };
     let rendered;
     try {
       rendered = renderEmail(
         { key: row.template_key, subject: template.subject, body_html: template.body_html, body_text: template.body_text },
-        row.merge_data
+        data
       );
     } catch (e) {
       const why = e instanceof TemplateError ? e.message : String(e);
@@ -344,12 +376,16 @@ export async function drainOutbox(limit = 20): Promise<DrainReport> {
       continue;
     }
 
+    // The template is the message; the frame around it is the site's. The
+    // snapshot kept on the row is the whole thing, because that is what the
+    // reader received.
+    const wrapped = wrapEmail(rendered, brand);
     const result = await sendEmail({
       to: row.to_email,
       toName: row.to_name,
       subject: rendered.subject,
-      html: rendered.html,
-      text: rendered.text,
+      html: wrapped.html,
+      text: wrapped.text,
     });
 
     if (result.ok) {
@@ -357,7 +393,7 @@ export async function drainOutbox(limit = 20): Promise<DrainReport> {
         p_id: row.id,
         p_provider_ref: result.providerRef,
         p_subject: rendered.subject,
-        p_body: rendered.html,
+        p_body: wrapped.html,
       });
       report.sent++;
     } else {

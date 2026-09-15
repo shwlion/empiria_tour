@@ -207,7 +207,7 @@ the first screens that needed it.
 | Published packages | 5 | The site is sellable today, on seed data |
 | Administrators | 1 | Enough to work; a second is needed before anyone can be closed or demoted |
 | Partners | 0 | No applications yet either |
-| Email templates written | 0 of 16 | Nothing would render even if DNS landed |
+| Email templates written | 15 of 16 drafted (0020) | Elevsoft's drafts, in a branded frame; the words are still Empiria's to sign off |
 | Policy pages written | 0 of 7 | Terms, privacy, booking conditions, cancellation all placeholder |
 | Registration number | not set | Five published packages, and the site names no seller |
 
@@ -221,7 +221,9 @@ form or unpublish until it is filled.
 
 1. Content, pricing and imagery (§2.1). The catalogue is placeholder seed data.
 2. Company name and travel registration number — both unset.
-3. Sixteen email bodies and seven policy pages, all empty. Every editor exists.
+3. Seven policy pages, all placeholder, and the sign-off on fifteen drafted
+   email bodies (0020 seeded them; the console is where they are edited).
+   Every editor exists.
 4. Resend DNS records. The only thing between a working outbox and sent mail.
 5. Stripe account access (§4.4(b)), in Empiria World Inc.'s name.
 6. Supplier cost per package (§2.1(b)). §4.6(b) gives the formula. Blocks B5.
