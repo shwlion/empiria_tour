@@ -342,21 +342,28 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
   padding: 0 25px; color: var(--ink); border-radius: 999px; background: #fdf1e1;
   font-size: 0.98rem; font-weight: 500; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
 }
-/* The scroll cue (14 Sep). Quieter than the tags — text, not a pill — with the
-   intro line's shadow so it reads on the photograph. Inside .intro-copy so it
-   fades with it. The arrow bobs; the reduced-motion block below stills it. */
+/* The scroll cue (14 Sep). A first pass as quiet cream text was hardly
+   visible on the photograph, so it is the site's button: the brand flame
+   (#f15a29, hover #d6420f — the values in app/globals.css, written here
+   because this file carries its own palette), which the design reserves for
+   exactly this. Inside .intro-copy so it fades with it. The arrow bobs; the
+   reduced-motion block below stills it. */
 .cinema-page .scroll-cue {
-  display: inline-flex; align-items: center; gap: 8px; margin-top: 28px; padding: 8px 14px;
-  color: rgba(253, 241, 225, 0.88); background: transparent; border-radius: 999px;
-  font-size: 0.95rem; font-weight: 500; letter-spacing: 0.01em; cursor: pointer;
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.55), 0 6px 22px rgba(0, 0, 0, 0.45);
-  transition: color 200ms ease, background-color 200ms ease;
+  display: inline-flex; align-items: center; gap: 10px; margin-top: 30px;
+  min-height: 48px; padding: 0 22px 0 26px;
+  color: #fff; background: #f15a29; border-radius: 999px;
+  font-size: 1.02rem; font-weight: 600; letter-spacing: 0.01em; cursor: pointer;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.32), 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+  transition: background-color 200ms ease, transform 200ms ease, box-shadow 200ms ease;
 }
-.cinema-page .scroll-cue:hover { color: #fdf1e1; background: rgba(253, 241, 225, 0.1); }
+.cinema-page .scroll-cue:hover {
+  background: #d6420f; transform: translateY(-2px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.36), 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+}
 .cinema-page .scroll-cue:focus-visible { outline: 2px solid #fdf1e1; outline-offset: 3px; }
 .cinema-page .scroll-cue-arrow {
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
-  animation: cinema-cue-bob 1.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  width: 20px; height: 20px;
+  animation: cinema-cue-bob 1.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
 @keyframes cinema-cue-bob {
   0%, 100% { transform: translateY(0); }

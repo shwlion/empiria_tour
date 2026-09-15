@@ -148,8 +148,9 @@ pin icons are gone. A post with no picture falls back to a teal-to-ink gradient
 rather than a broken image. The height is `--sight-card-h` on `.cinema-page`,
 read by both the card and `.sights-controls`, which had each carried their own
 220. Known and accepted: on a first visit at ≤~720px tall the taller card puts
-the ← → buttons under the cookie banner until it is dismissed. **A scroll cue (14 Sep):** "Scroll for the posts" with a bobbing arrow sits
-under the tags inside `.intro-copy`, so it fades with the intro the moment
+the ← → buttons under the cookie banner until it is dismissed. **A scroll cue (14 Sep):** "Scroll for the posts", a flame pill with a bobbing
+arrow, sits under the tags inside `.intro-copy` (a first pass as quiet cream
+text was hardly visible on the photograph), so it fades with the intro the moment
 scrolling starts; it is a button that smooth-scrolls to 3300, where the row is
 settled. Nothing on the first screen had said the cards were 2700px down. The copy is hard-coded in the
 component; making it editable from the console is a follow-up.
