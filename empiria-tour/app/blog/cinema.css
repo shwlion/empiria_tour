@@ -327,12 +327,28 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
   transform: translate3d(-50%, var(--intro-copy-y), 0);
   opacity: var(--intro-copy-opacity); will-change: transform, opacity;
 }
-/* Larger than the spec's 1.18rem and with a heavier shadow, at the client's
-   request: on a big screen the line sat small against a busy photograph.
-   Scales with the viewport between 1.3rem and 2.1rem. */
-.cinema-page .intro-copy p {
-  margin: 0 auto; max-width: 680px; color: #fdf1e1;
-  font-size: clamp(1.3rem, 1.4vw + 0.4rem, 2.1rem); font-weight: 600;
+/* The headline (14 Sep, client's request): four words in the display face the
+   story panels already use, sized to catch the eye from across the room —
+   ~135px on a 1440 screen, two lines on a phone. It replaces a thirty-word
+   line at paragraph size that read as a caption. The subline beneath it keeps
+   the one fact that sells the journal: who writes it. */
+.cinema-page .intro-title {
+  margin: 0 auto; max-width: 14ch; color: #fdf1e1;
+  font-family: "Ogg Medium", Georgia, serif; font-weight: 500;
+  font-size: clamp(3.4rem, 8vw, 8.5rem); line-height: 0.92; letter-spacing: -0.01em;
+  text-wrap: balance;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), 0 10px 40px rgba(0, 0, 0, 0.55);
+}
+/* A 700px-tall laptop: the block's 28vh bottom margin and a two-line headline
+   put its top 5px above the navbar's bottom edge. Lower it and trim the type;
+   the cue still lands well above where the cookie banner sits. */
+@media (max-height: 760px) {
+  .cinema-page .intro-copy { bottom: clamp(40px, 20vh, 400px); }
+  .cinema-page .intro-title { font-size: clamp(3rem, 7vw, 7.5rem); }
+}
+.cinema-page .intro-sub {
+  margin: 18px auto 0; max-width: 680px; color: #fdf1e1;
+  font-size: clamp(1.1rem, 0.6vw + 0.85rem, 1.4rem); font-weight: 600;
   line-height: 1.3; letter-spacing: 0.005em;
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.55), 0 6px 28px rgba(0, 0, 0, 0.55);
 }
@@ -441,7 +457,7 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
   .cinema-page .bridge-img { bottom: 2vh; width: 190vw; }
   .cinema-page .frame-two-img { width: 176vw; }
   .cinema-page .intro-copy { bottom: 42px; }
-  .cinema-page .intro-copy p { font-size: 1.15rem; }
+  .cinema-page .intro-sub { font-size: 1.05rem; margin-top: 14px; }
   .cinema-page .story-panel p { font-size: 1rem; }
   .cinema-page .hero-tags { gap: 8px; }
   .cinema-page .hero-tags span { min-height: 38px; padding: 0 16px; font-size: 0.88rem; }

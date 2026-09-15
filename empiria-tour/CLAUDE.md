@@ -152,7 +152,12 @@ the ← → buttons under the cookie banner until it is dismissed. **A scroll cu
 arrow, sits under the tags inside `.intro-copy` (a first pass as quiet cream
 text was hardly visible on the photograph), so it fades with the intro the moment
 scrolling starts; it is a button that smooth-scrolls to 3300, where the row is
-settled. Nothing on the first screen had said the cards were 2700px down. The copy is hard-coded in the
+settled. Nothing on the first screen had said the cards were 2700px down. **The headline (14 Sep):** the thirty-word intro line is replaced by "Notes
+from the road" as the page's `h1`, in the Ogg display face the story panels
+use, at `clamp(3.4rem, 8vw, 8.5rem)` — the spec's hero title back, in short
+form — with "By the people who run the trips." beneath it. Under 760px tall the
+block sits lower and the type trims to `7vw`, or on a 700px laptop the
+headline's top overlapped the navbar by 5px. The copy is hard-coded in the
 component; making it editable from the console is a follow-up.
 
 ### The contact page

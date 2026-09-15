@@ -428,10 +428,12 @@ export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; cou
           </div>
 
           <section className="intro-copy" aria-label="About the journal">
-            <p>
-              Notes from the road, by the people who run the trips: the caf&eacute; that opens at six,
-              the ferry worth waiting for, the walk to take once the coaches have gone.
-            </p>
+            {/* Four words, big, in the display face the story panels use — the
+                spec's hero title back in short form (client's request, 14 Sep;
+                the thirty-word line it replaces read as a caption). The page
+                had no h1 until this. */}
+            <h1 className="intro-title">Notes from the road</h1>
+            <p className="intro-sub">By the people who run the trips.</p>
             <div className="hero-tags" aria-label="Where we go">
               <span>Greece</span>
               <span>Italy</span>
