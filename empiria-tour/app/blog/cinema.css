@@ -342,6 +342,26 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
   padding: 0 25px; color: var(--ink); border-radius: 999px; background: #fdf1e1;
   font-size: 0.98rem; font-weight: 500; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
 }
+/* The scroll cue (14 Sep). Quieter than the tags — text, not a pill — with the
+   intro line's shadow so it reads on the photograph. Inside .intro-copy so it
+   fades with it. The arrow bobs; the reduced-motion block below stills it. */
+.cinema-page .scroll-cue {
+  display: inline-flex; align-items: center; gap: 8px; margin-top: 28px; padding: 8px 14px;
+  color: rgba(253, 241, 225, 0.88); background: transparent; border-radius: 999px;
+  font-size: 0.95rem; font-weight: 500; letter-spacing: 0.01em; cursor: pointer;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.55), 0 6px 22px rgba(0, 0, 0, 0.45);
+  transition: color 200ms ease, background-color 200ms ease;
+}
+.cinema-page .scroll-cue:hover { color: #fdf1e1; background: rgba(253, 241, 225, 0.1); }
+.cinema-page .scroll-cue:focus-visible { outline: 2px solid #fdf1e1; outline-offset: 3px; }
+.cinema-page .scroll-cue-arrow {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  animation: cinema-cue-bob 1.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+@keyframes cinema-cue-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(5px); }
+}
 
 /* ── Story panels (z 10) ────────────────────────────────────────────────── */
 
@@ -436,4 +456,5 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
   .cinema-page .scene-img, .cinema-page .back-stack,
   .cinema-page .intro-copy, .cinema-page .story-panel, .cinema-page .sights-track,
   .cinema-page .sights-slider, .cinema-page .sight-card, .cinema-page .sight-photo { transition: none; }
+  .cinema-page .scroll-cue-arrow { animation: none; }
 }

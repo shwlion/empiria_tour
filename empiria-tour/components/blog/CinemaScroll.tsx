@@ -437,6 +437,24 @@ export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; cou
               <span>Italy</span>
               <span>Small groups</span>
             </div>
+            {/* The cards arrive at 2700–3150 and nothing on the first screen
+                said so (client's request, 14 Sep). The cue rides the intro's
+                fade, so it is gone the moment scrolling starts — and it acts:
+                the page already scrolls smoothly, so pressing it lands on the
+                row settled rather than mid-fade. */}
+            {posts.length > 0 && (
+              <button
+                type="button"
+                className="scroll-cue"
+                aria-label="Scroll to the posts"
+                onClick={() => window.scrollTo({ top: 3300, behavior: 'smooth' })}
+              >
+                <span>Scroll for the posts</span>
+                <svg className="scroll-cue-arrow" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                  <path d="M12 5v13m0 0l-5-5m5 5l5-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            )}
           </section>
 
           <section className="story-panel story-panel-bridge" aria-label="Why we write">
