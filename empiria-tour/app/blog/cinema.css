@@ -191,50 +191,76 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
   text-shadow: 0 2px 18px rgba(0, 0, 0, 0.42);
 }
 
+/* The cards, redesigned at the client's request (14 Sep): the post's main
+   picture fills the card and the words sit on a gradient at its foot, in place
+   of the spec's 220px cream plate. The height lives in --sight-card-h because
+   .sights-controls reads it too — 220 had been written in both places, and a
+   card that grows without its buttons following is a card with buttons across
+   its middle. Set on .cinema-page, the one ancestor the two share. */
+.cinema-page { --sight-card-h: 360px; }
 .cinema-page .sight-card {
-  position: relative; flex: 0 0 clamp(360px, 19.4vw, 430px); height: 220px; padding: 24px;
-  overflow: hidden; border: 1px solid rgba(253, 241, 225, 0.42); border-radius: 24px;
-  color: #000; background: #fdf1e1; box-shadow: 0 22px 60px rgba(2, 47, 64, 0.26);
+  position: relative; flex: 0 0 clamp(440px, 28vw, 580px); height: var(--sight-card-h);
+  padding: 24px; overflow: hidden; border: 1px solid rgba(253, 241, 225, 0.28);
+  border-radius: 24px; color: #fdf1e1;
+  /* What a post with no picture shows. A deliberate card, not a hole. */
+  background: linear-gradient(160deg, #0e7c86 0%, #0b2e35 58%, #0b1110 100%);
+  box-shadow: 0 22px 60px rgba(2, 47, 64, 0.32);
   backdrop-filter: none; cursor: pointer; pointer-events: auto; user-select: none;
   transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 420ms ease;
 }
 /* The centred card is the one you are looking at, and it says so. */
 .cinema-page .sight-card.is-active {
   transform: translateY(-10px) scale(1.03);
-  box-shadow: 0 34px 80px rgba(2, 47, 64, 0.38);
+  box-shadow: 0 34px 80px rgba(2, 47, 64, 0.42);
 }
 .cinema-page .sight-card:hover { transform: translateY(-6px); }
 .cinema-page .sight-card.is-active:hover { transform: translateY(-12px) scale(1.03); }
 .cinema-page .sight-card::before, .cinema-page .sight-card::after { content: none; }
-.cinema-page .sight-kicker, .cinema-page .sight-card h3, .cinema-page .sight-card p {
-  text-shadow: none; position: relative; z-index: 1;
-}
 .cinema-page .sight-card:focus-visible, .cinema-page .sight-card.is-active { outline: none; }
+
+/* z 0: the photograph. It eases to 1.04 as the card lifts — one motion. */
+.cinema-page .sight-photo {
+  position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; max-width: none;
+  object-fit: cover; pointer-events: none;
+  transition: transform 640ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.cinema-page .sight-card:hover .sight-photo,
+.cinema-page .sight-card.is-active .sight-photo { transform: scale(1.04); }
+/* z 1: the gradient the words stand on. Clear through the top third so the
+   picture is a picture, deepening to near-ink at the foot so white text reads
+   on a photograph nobody has vetted for it. */
+.cinema-page .sight-shade {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(180deg,
+    rgba(8, 12, 14, 0) 34%,
+    rgba(8, 12, 14, 0.52) 62%,
+    rgba(8, 12, 14, 0.88) 100%);
+}
+/* z 2: the words. */
+.cinema-page .sight-words {
+  position: absolute; left: 24px; right: 24px; bottom: 24px; z-index: 2;
+}
 .cinema-page .sight-kicker {
-  display: block; margin-bottom: 56px; color: #000; font-size: 12px; font-weight: 500;
-  line-height: 1.05; text-transform: uppercase;
+  display: block; margin: 0 0 10px; color: rgba(253, 241, 225, 0.82); font-size: 12px;
+  font-weight: 600; line-height: 1.05; letter-spacing: 0.06em; text-transform: uppercase;
 }
-.cinema-page .sight-pin {
-  position: absolute; top: 24px; right: 24px; width: 67.2px; height: 67.2px;
-  max-width: none; pointer-events: none;
-}
+/* Two lines now. One line with an ellipsis was fine on a 220px plate; on a
+   360px poster it read as stingy. */
 .cinema-page .sight-card h3 {
-  position: absolute; left: 24px; right: 24px;
-  bottom: calc(24px + (16px * 1.16 * 2) + 12px); max-width: calc(100% - 76px);
-  margin: 0; color: #000; font-size: 24px; font-weight: 800; line-height: 0.95;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  margin: 0; color: #fdf1e1; font-size: 26px; font-weight: 800; line-height: 1.02;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.35);
 }
 .cinema-page .sight-card p {
-  position: absolute; left: 24px; right: 24px; bottom: 24px; max-width: 100%;
-  margin: 12px 0 0; color: #000; font-size: 16px; font-weight: 400; line-height: 1.16;
-  display: -webkit-box; max-height: calc(2em * 1.16); overflow: hidden;
-  -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+  margin: 10px 0 0; color: rgba(253, 241, 225, 0.86); font-size: 15px; font-weight: 400;
+  line-height: 1.25; display: -webkit-box; -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2; overflow: hidden;
 }
 
 .cinema-page .sights-controls {
   /* Centred under the active card rather than the spec's left: 48px, since
      the card they move is now in the middle of the screen. */
-  left: 50%; right: auto; top: calc(var(--sights-screen-top) + 220px + 24px); z-index: 5;
+  left: 50%; right: auto; top: calc(var(--sights-screen-top) + var(--sight-card-h) + 24px); z-index: 5;
   display: flex; justify-content: center; gap: 14px;
   opacity: var(--sights-controls-opacity);
   transform: translate3d(-50%, var(--sights-y), 0);
@@ -374,7 +400,7 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
   .cinema-page .story-panel h2 { font-size: 3.2rem; }
   .cinema-page .facts { gap: 34px; margin-top: 44px; }
   .cinema-page .facts dt { font-size: 3.2rem; }
-  .cinema-page .sight-card { flex-basis: clamp(320px, 40vw, 390px); min-height: 178px; }
+  .cinema-page .sight-card { flex-basis: clamp(380px, 44vw, 480px); }
 }
 
 @media (max-width: 640px) {
@@ -399,17 +425,15 @@ html.cinema-html body { min-height: 100%; margin: 0; overflow-x: clip; backgroun
   .cinema-page .facts dt { font-size: 2.5rem; }
   .cinema-page .sights-slider { padding: 0; }
   .cinema-page .sights-track { gap: 12px; }
-  .cinema-page .sight-card { flex-basis: min(82vw, 330px); height: 220px; padding: 24px; border-radius: 24px; }
-  .cinema-page .sights-controls { top: calc(var(--sights-screen-top) + 244px); }
-  .cinema-page .sight-card h3 { max-width: 78%; }
-  .cinema-page .sight-card p { max-width: 100%; margin-top: 10px; }
-  .cinema-page .sight-kicker { margin-bottom: 56px; }
-  .cinema-page .sight-pin { top: 24px; right: 24px; width: 57.6px; height: 57.6px; }
+  .cinema-page { --sight-card-h: 320px; }
+  .cinema-page .sight-card { flex-basis: min(86vw, 360px); padding: 20px; border-radius: 22px; }
+  .cinema-page .sight-words { left: 20px; right: 20px; bottom: 20px; }
+  .cinema-page .sight-card h3 { font-size: 22px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   html.cinema-html { scroll-behavior: auto; }
   .cinema-page .scene-img, .cinema-page .back-stack,
   .cinema-page .intro-copy, .cinema-page .story-panel, .cinema-page .sights-track,
-  .cinema-page .sights-slider, .cinema-page .sight-card { transition: none; }
+  .cinema-page .sights-slider, .cinema-page .sight-card, .cinema-page .sight-photo { transition: none; }
 }

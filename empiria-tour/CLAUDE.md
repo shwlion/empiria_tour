@@ -140,7 +140,15 @@ soft, which the client chose over gaps. The scene layers are raw
 display face is served by `app/api/fonts/ogg/route.ts`: the spec's font host
 sends no `Access-Control-Allow-Origin`, so a browser refuses it cross-origin
 and the headline falls back to a system serif — the route fetches the same
-file server-side and serves it from this origin. The copy is hard-coded in the
+file server-side and serves it from this origin. **The cards redesigned (14 Sep), at the client's request:** each is now the
+post's hero photograph filling a 440–580 × 360 card (`min(86vw, 360px)` × 320
+on phones), with the date, a two-line title and a two-line excerpt on a
+gradient at its foot — in place of the spec's 220px cream plate — and the three
+pin icons are gone. A post with no picture falls back to a teal-to-ink gradient
+rather than a broken image. The height is `--sight-card-h` on `.cinema-page`,
+read by both the card and `.sights-controls`, which had each carried their own
+220. Known and accepted: on a first visit at ≤~720px tall the taller card puts
+the ← → buttons under the cookie banner until it is dismissed. The copy is hard-coded in the
 component; making it editable from the console is a follow-up.
 
 ### The contact page

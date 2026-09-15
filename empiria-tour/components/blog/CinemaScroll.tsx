@@ -1,10 +1,13 @@
 'use client';
 
 /* eslint-disable @next/next/no-img-element --
-   The seven scene layers and the three pin icons are third-party PNGs on hosts
-   outside next.config's remotePatterns, sized entirely by the composition's
+   The seven scene layers are third-party PNGs on hosts outside next.config's
+   remotePatterns, sized entirely by the composition's
    CSS. next/image would lazy-load them and add its own styling, and either one
-   breaks a layer stack that has to be present and exact from the first frame. */
+   breaks a layer stack that has to be present and exact from the first frame.
+   The cards' hero photographs are raw <img> for the same reason: they sit
+   inside a slider the engine transforms every frame, where next/image's
+   lazy-loading misjudges what is visible and its wrapper fights the card. */
 
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
@@ -56,11 +59,8 @@ const SCENE = {
   frameTwo: 'https://raft-blast-61784561.figma.site/_assets/v11/ba75252bab2b1c510987b74837770f7bc8a6b2d4.png',
 } as const;
 
-const PINS = [
-  'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230438_d526b8b6-8a2e-4e3b-9993-3908acae03a7.png',
-  'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230442_140bc25b-b165-4249-904a-f708bff6970e.png',
-  'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230448_825949c9-ccdb-4857-b4a6-e349eccc9010.png',
-] as const;
+// The spec's three pin icons, one per card, were removed at the client's
+// request (14 Sep) along with the cream plate they sat on.
 
 /** Three identical sets, so the slider can wrap without a visible jump. */
 const SETS = 3;
@@ -377,10 +377,19 @@ export default function CinemaScroll({ posts, counts }: { posts: BlogCard[]; cou
                             }
                           }}
                         >
-                          <span className="sight-kicker">{formatDate(post.publishedAt)}</span>
-                          <img className="sight-pin" src={PINS[cardIndex % PINS.length]} alt="" />
-                          <h3>{post.title}</h3>
-                          <p>{post.excerpt}</p>
+                          {/* The post's main picture fills the card (client's
+                              request, 14 Sep). No <img> at all when there is
+                              none — a broken-image glyph on a poster is worse
+                              than the gradient the CSS falls back to. */}
+                          {post.heroImage && (
+                            <img className="sight-photo" src={post.heroImage} alt="" decoding="async" />
+                          )}
+                          <span className="sight-shade" aria-hidden="true" />
+                          <div className="sight-words">
+                            <span className="sight-kicker">{formatDate(post.publishedAt)}</span>
+                            <h3>{post.title}</h3>
+                            <p>{post.excerpt}</p>
+                          </div>
                         </article>
                       ))
                     )}
